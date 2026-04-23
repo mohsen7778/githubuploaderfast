@@ -780,10 +780,10 @@ html, body {
     <button class="btn-hot" onclick="enterEdit()">✏ Edit</button>
   </div>
 
-  <!-- EDIT ACTIONS — 2 rows: [Cut All | Paste] then [Cancel | Commit] -->
+  <!-- EDIT ACTIONS — 2 rows: [Clear | Paste] then [Cancel | Commit] -->
   <div class="action-bar hidden" id="bar-edit">
     <div class="bar-row">
-      <button class="btn-ghost btn-cut" onclick="cutAll()">✂ Cut All</button>
+      <button class="btn-ghost btn-cut" onclick="cutAll()">🗑 Clear</button>
       <button class="btn-ghost btn-paste" onclick="pasteToEditor()">📋 Paste</button>
     </div>
     <div class="bar-row">
@@ -1063,19 +1063,13 @@ function copyFileContent() {
   navigator.clipboard?.writeText(text).then(() => toast('Copied!', 'ok'));
 }
 
-// ── CUT ALL ───────────────────────────────────────────────────────────────
-async function cutAll() {
+// ── CLEAR EDITOR ─────────────────────────────────────────────────────────
+function cutAll() {
   const ta = document.getElementById('fv-textarea');
-  const text = ta.value;
-  if (!text) { toast('Editor is empty', 'bad'); return; }
-  try {
-    await navigator.clipboard.writeText(text);
-    ta.value = '';
-    ta.focus();
-    toast('✂ Cut to clipboard!', 'ok');
-  } catch {
-    toast('⚠ Clipboard access denied', 'bad');
-  }
+  if (!ta.value) { toast('Editor already empty', 'bad'); return; }
+  ta.value = '';
+  ta.blur();
+  toast('🗑 Editor cleared', 'ok');
 }
 
 // ── PASTE TO EDITOR ───────────────────────────────────────────────────────
@@ -1083,19 +1077,7 @@ async function pasteToEditor() {
   try {
     const text = await navigator.clipboard.readText();
     if (!text) { toast('Clipboard is empty', 'bad'); return; }
-    const ta = document.getElementById('fv-textarea');
-    // Insert at cursor position if there's a selection, else replace all
-    const start = ta.selectionStart;
-    const end   = ta.selectionEnd;
-    if (start === 0 && end === ta.value.length) {
-      // Full selection or no selection at start — replace all
-      ta.value = text;
-    } else {
-      // Insert at cursor
-      ta.value = ta.value.slice(0, start) + text + ta.value.slice(end);
-      ta.selectionStart = ta.selectionEnd = start + text.length;
-    }
-    ta.focus();
+    document.getElementById('fv-textarea').value = text;
     toast('📋 Pasted!', 'ok');
   } catch {
     toast('⚠ Clipboard access denied', 'bad');
