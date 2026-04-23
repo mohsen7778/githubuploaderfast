@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Octave Deploy</title>
+
+<!-- PWA -->
+<link rel="manifest" id="pwa-manifest">
+<meta name="theme-color" content="#080810">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Deploy">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -318,7 +327,7 @@ html, body {
 }
 
 /* ── FILE VIEW ─────────────────────────────────────────────────────────── */
-#file-view { padding-bottom: 80px; }
+#file-view { padding-bottom: 120px; }
 
 .fv-header {
   background: var(--s1);
@@ -431,38 +440,77 @@ html, body {
 }
 .action-bar.hidden { display: none; }
 
+/* Edit bar is 2-row */
+#bar-edit {
+  flex-direction: column;
+  gap: 7px;
+}
+.bar-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+/* ── BASE BUTTON STYLES ───────────────────────────────────────────────── */
 .btn-ghost {
   flex: 1;
   background: var(--s3);
-  border: 1px solid var(--border2);
-  border-radius: 12px;
-  padding: 12px;
-  font-family: var(--sans);
-  font-size: 13px;
-  font-weight: 600;
+  border: 1.5px solid var(--border2);
+  border-radius: 13px;
+  padding: 14px 10px;
+  font-family: var(--display);
+  font-size: 14px;
+  font-weight: 700;
   color: var(--teal);
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, transform 0.1s;
   text-align: center;
+  letter-spacing: -0.2px;
 }
-.btn-ghost:active { background: rgba(168,213,227,0.06); }
+.btn-ghost:active { background: rgba(168,213,227,0.08); transform: scale(0.97); }
 
 .btn-hot {
   flex: 1.5;
   background: var(--pink);
   border: none;
-  border-radius: 12px;
-  padding: 12px;
+  border-radius: 13px;
+  padding: 14px 10px;
   font-family: var(--display);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--bg);
   cursor: pointer;
   transition: opacity 0.15s, transform 0.1s;
   text-align: center;
+  letter-spacing: -0.2px;
+  box-shadow: 0 4px 18px rgba(255,120,172,0.35);
 }
 .btn-hot:active { opacity: 0.8; transform: scale(0.97); }
-.btn-hot:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+.btn-hot:disabled { opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* ── CUT & PASTE BUTTONS ──────────────────────────────────────────────── */
+.btn-cut {
+  background: rgba(255,92,122,0.1);
+  border: 1.5px solid rgba(255,92,122,0.28);
+  color: #FF7090;
+}
+.btn-cut:active { background: rgba(255,92,122,0.18) !important; }
+
+.btn-paste {
+  background: rgba(94,255,200,0.08);
+  border: 1.5px solid rgba(94,255,200,0.22);
+  color: var(--success);
+}
+.btn-paste:active { background: rgba(94,255,200,0.15) !important; }
+
+.btn-cancel {
+  background: var(--s3);
+  border: 1.5px solid var(--border);
+  color: var(--dim);
+  font-family: var(--display);
+  font-size: 14px;
+  font-weight: 700;
+}
 
 /* ── FAB ───────────────────────────────────────────────────────────────── */
 #fab {
@@ -732,10 +780,16 @@ html, body {
     <button class="btn-hot" onclick="enterEdit()">✏ Edit</button>
   </div>
 
-  <!-- EDIT ACTIONS -->
+  <!-- EDIT ACTIONS — 2 rows: [Cut All | Paste] then [Cancel | Commit] -->
   <div class="action-bar hidden" id="bar-edit">
-    <button class="btn-ghost" onclick="cancelEdit()">Cancel</button>
-    <button class="btn-hot" id="commit-btn" onclick="commitFile()">💾 Commit</button>
+    <div class="bar-row">
+      <button class="btn-ghost btn-cut" onclick="cutAll()">✂ Cut All</button>
+      <button class="btn-ghost btn-paste" onclick="pasteToEditor()">📋 Paste</button>
+    </div>
+    <div class="bar-row">
+      <button class="btn-ghost btn-cancel" onclick="cancelEdit()">Cancel</button>
+      <button class="btn-hot" id="commit-btn" onclick="commitFile()">💾 Commit</button>
+    </div>
   </div>
 
 </div>
@@ -924,7 +978,6 @@ function fileIcon(ext) {
 async function openFile(path, name) {
   curFile = path; curSha = null;
 
-  // slide tree out, file in
   document.getElementById('tree-view').classList.add('slide-left');
   setTimeout(() => {
     document.getElementById('tree-view').classList.add('hidden');
@@ -1000,7 +1053,6 @@ async function commitFile() {
     toast('✓ Committed', 'ok');
     document.getElementById('fv-code').textContent = content;
     cancelEdit();
-    // refresh SHA silently
     api({ action: 'get', path: curFile }).then(d => { curSha = d.sha; }).catch(() => {});
   } catch (e) { toast('✗ ' + e.message, 'bad'); }
   btn.textContent = '💾 Commit'; btn.disabled = false;
@@ -1009,6 +1061,45 @@ async function commitFile() {
 function copyFileContent() {
   const text = document.getElementById('fv-textarea').value || document.getElementById('fv-code').textContent;
   navigator.clipboard?.writeText(text).then(() => toast('Copied!', 'ok'));
+}
+
+// ── CUT ALL ───────────────────────────────────────────────────────────────
+async function cutAll() {
+  const ta = document.getElementById('fv-textarea');
+  const text = ta.value;
+  if (!text) { toast('Editor is empty', 'bad'); return; }
+  try {
+    await navigator.clipboard.writeText(text);
+    ta.value = '';
+    ta.focus();
+    toast('✂ Cut to clipboard!', 'ok');
+  } catch {
+    toast('⚠ Clipboard access denied', 'bad');
+  }
+}
+
+// ── PASTE TO EDITOR ───────────────────────────────────────────────────────
+async function pasteToEditor() {
+  try {
+    const text = await navigator.clipboard.readText();
+    if (!text) { toast('Clipboard is empty', 'bad'); return; }
+    const ta = document.getElementById('fv-textarea');
+    // Insert at cursor position if there's a selection, else replace all
+    const start = ta.selectionStart;
+    const end   = ta.selectionEnd;
+    if (start === 0 && end === ta.value.length) {
+      // Full selection or no selection at start — replace all
+      ta.value = text;
+    } else {
+      // Insert at cursor
+      ta.value = ta.value.slice(0, start) + text + ta.value.slice(end);
+      ta.selectionStart = ta.selectionEnd = start + text.length;
+    }
+    ta.focus();
+    toast('📋 Pasted!', 'ok');
+  } catch {
+    toast('⚠ Clipboard access denied', 'bad');
+  }
 }
 
 function showBar(mode) {
@@ -1108,6 +1199,33 @@ function toast(msg, type = '') {
   clearTimeout(_tt);
   _tt = setTimeout(() => el.classList.remove('show'), 3000);
 }
+
+// ── PWA SETUP ─────────────────────────────────────────────────────────────
+(function setupPWA() {
+  // Inline SVG icon as data URI
+  const iconSvg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='110' fill='%23080810'/><rect width='512' height='512' rx='110' fill='url(%23g)'/><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23FF78AC' stop-opacity='.18'/><stop offset='1' stop-color='%23080810' stop-opacity='0'/></linearGradient></defs><path d='M290 80L170 290h100l-22 142L440 220H330l22-140z' fill='%23FF78AC'/></svg>`;
+  const iconUrl = `data:image/svg+xml,${iconSvg}`;
+
+  const manifest = {
+    name: 'Octave Deploy',
+    short_name: 'Deploy',
+    description: 'GitHub file manager from your phone',
+    start_url: '/',
+    display: 'standalone',
+    orientation: 'portrait',
+    background_color: '#080810',
+    theme_color: '#080810',
+    icons: [
+      { src: iconUrl, sizes: '192x192', type: 'image/svg+xml' },
+      { src: iconUrl, sizes: '512x512', type: 'image/svg+xml' }
+    ]
+  };
+
+  try {
+    const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+    document.getElementById('pwa-manifest').href = URL.createObjectURL(blob);
+  } catch (e) { /* non-critical */ }
+})();
 </script>
 </body>
 </html>
