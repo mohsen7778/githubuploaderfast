@@ -367,13 +367,25 @@ html, body {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.fv-path-row { display: flex; align-items: center; gap: 6px; margin-top: 1px; overflow: hidden; }
 .fv-path {
   font-size: 11px;
   color: var(--dim);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  margin-top: 1px;
+}
+.fv-lines-badge {
+  font-size: 10px;
+  font-family: var(--mono);
+  font-weight: 500;
+  color: var(--teal);
+  background: rgba(168,213,227,0.08);
+  border: 1px solid rgba(168,213,227,0.18);
+  border-radius: 5px;
+  padding: 1px 6px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .fv-body { padding: 16px; }
@@ -530,7 +542,7 @@ html, body {
   align-items: center;
   justify-content: center;
   box-shadow: 0 6px 24px rgba(255,120,172,0.45);
-  z-index: 40;
+  z-index: 60;
   transition: transform 0.2s, box-shadow 0.2s;
   line-height: 1;
 }
@@ -744,7 +756,10 @@ html, body {
         <div class="back-btn" onclick="backToTree()">←</div>
         <div class="fv-meta">
           <div class="fv-name" id="fv-name">—</div>
-          <div class="fv-path" id="fv-path">—</div>
+          <div class="fv-path-row">
+            <span class="fv-path" id="fv-path">—</span>
+            <span class="fv-lines-badge" id="fv-lines"></span>
+          </div>
         </div>
         <div class="top-icon-btn" onclick="copyFileContent()" title="Copy">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -1011,6 +1026,7 @@ async function openFile(path, name) {
     const text = b64Decode(d.content);
     document.getElementById('fv-textarea').value = text;
     document.getElementById('fv-code').textContent = text;
+    updateLineCount(text);
     document.getElementById('fv-loading').classList.add('hidden');
     document.getElementById('fv-view').classList.remove('hidden');
     document.getElementById('fv-edit').classList.add('hidden');
@@ -1068,6 +1084,7 @@ function cutAll() {
   if (!ta.value) { toast('Editor already empty', 'bad'); return; }
   ta.value = '';
   ta.blur();
+  updateLineCount('');
   toast('🗑 Editor cleared', 'ok');
 }
 
@@ -1077,6 +1094,7 @@ async function pasteToEditor() {
     const text = await navigator.clipboard.readText();
     if (!text) { toast('Clipboard is empty', 'bad'); return; }
     document.getElementById('fv-textarea').value = text;
+    updateLineCount(text);
     toast('📋 Pasted!', 'ok');
   } catch {
     toast('⚠ Clipboard access denied', 'bad');
@@ -1154,6 +1172,17 @@ function saveRepo() {
   closeSheet('repo-sheet-bg');
   loadTree();
 }
+
+// ── LINE COUNT ────────────────────────────────────────────────────────────
+function updateLineCount(text) {
+  const n = text ? text.split('\n').length : 0;
+  document.getElementById('fv-lines').textContent = n ? `${n} ln` : '';
+}
+
+// Live update while editing
+document.getElementById('fv-textarea').addEventListener('input', function () {
+  updateLineCount(this.value);
+});
 
 // ── SHEET HELPERS ─────────────────────────────────────────────────────────
 function closeSheet(id) { document.getElementById(id).classList.add('hidden'); }
