@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Octave Deploy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --pink:    #FF78AC;
+  --teal:    #A8D5E3;
+  --cream:   #F2F0EA;
+  --bg:      #080810;
+  --s1:      #0F0F1C;
+  --s2:      #171726;
+  --s3:      #1F1F32;
+  --border:  rgba(255,120,172,0.12);
+  --border2: rgba(168,213,227,0.1);
+  --dim:     rgba(242,240,234,0.38);
+  --success: #5EFFC8;
+  --error:   #FF5C7A;
+  --mono: 'DM Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --display: 'Syne', sans-serif;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--cream);
+  font-family: var(--sans);
+  overflow: hidden;
+}
+
+/* ── SCROLLBAR ─────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,120,172,0.3); border-radius: 2px; }
+
+/* ── AUTH SCREEN ───────────────────────────────────────────────────────── */
+#auth-screen {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+}
+.glow-pink {
+  width: 300px; height: 300px;
+  background: rgba(255,120,172,0.15);
+  top: -60px; left: -80px;
+}
+.glow-teal {
+  width: 260px; height: 260px;
+  background: rgba(168,213,227,0.1);
+  bottom: -40px; right: -60px;
+}
+
+.auth-mark {
+  width: 64px; height: 64px;
+  background: var(--s2);
+  border: 1.5px solid rgba(255,120,172,0.3);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  position: relative;
+}
+.auth-mark::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(255,120,172,0.4), transparent 60%);
+  pointer-events: none;
+}
+.auth-mark svg {
+  width: 28px; height: 28px;
+  color: var(--pink);
+}
+
+.auth-title {
+  font-family: var(--display);
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+  background: linear-gradient(135deg, var(--cream) 40%, var(--pink));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.auth-sub {
+  font-size: 14px;
+  color: var(--dim);
+  margin-bottom: 44px;
+}
+
+.auth-field {
+  width: 100%;
+  max-width: 340px;
+  position: relative;
+  margin-bottom: 14px;
+}
+.auth-field input {
+  width: 100%;
+  background: var(--s2);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  padding: 16px 20px;
+  font-family: var(--mono);
+  font-size: 15px;
+  color: var(--cream);
+  outline: none;
+  letter-spacing: 4px;
+  transition: border-color 0.2s;
+}
+.auth-field input:focus { border-color: rgba(255,120,172,0.5); }
+.auth-field input::placeholder { letter-spacing: 0; font-family: var(--sans); opacity: 0.4; }
+
+.btn-pink {
+  width: 100%;
+  max-width: 340px;
+  background: var(--pink);
+  color: var(--bg);
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.3px;
+  border: none;
+  border-radius: 16px;
+  padding: 16px;
+  cursor: pointer;
+  transition: transform 0.15s, opacity 0.15s, box-shadow 0.2s;
+  box-shadow: 0 8px 28px rgba(255,120,172,0.3);
+}
+.btn-pink:active { transform: scale(0.97); opacity: 0.85; }
+.btn-pink:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+#auth-error {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--error);
+  opacity: 0;
+  transition: opacity 0.2s;
+  max-width: 340px;
+  text-align: center;
+}
+#auth-error.show { opacity: 1; }
+
+/* ── APP SHELL ──────────────────────────────────────────────────────────── */
+#app {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── TOPBAR ────────────────────────────────────────────────────────────── */
+.topbar {
+  background: var(--s1);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  min-height: 56px;
+}
+
+.topbar-wordmark {
+  font-family: var(--display);
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--pink);
+  flex-shrink: 0;
+  letter-spacing: -0.3px;
+}
+
+.repo-pill {
+  flex: 1;
+  min-width: 0;
+  background: var(--s3);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  overflow: hidden;
+}
+.repo-pill:active { border-color: rgba(168,213,227,0.3); }
+.repo-pill .rp-icon { font-size: 13px; flex-shrink: 0; }
+.repo-pill .rp-text {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--teal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  font-weight: 500;
+}
+
+.top-icon-btn {
+  width: 36px; height: 36px;
+  background: var(--s3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 15px;
+  color: var(--dim);
+  transition: color 0.15s, border-color 0.15s;
+}
+.top-icon-btn:active { color: var(--cream); border-color: var(--border); }
+
+/* ── CONTENT ────────────────────────────────────────────────────────────── */
+#content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.view {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  transition: transform 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.2s;
+}
+.view.hidden {
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(20px);
+}
+.view.slide-left {
+  transform: translateX(-30px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── TREE VIEW ─────────────────────────────────────────────────────────── */
+#tree-view { padding-bottom: 90px; }
+
+.section-label {
+  padding: 18px 16px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--dim);
+}
+
+.tree-wrap { padding: 0 8px; }
+
+.t-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  min-height: 42px;
+  transition: background 0.12s;
+  user-select: none;
+}
+.t-item:active { background: rgba(255,120,172,0.06); }
+
+.t-icon { font-size: 14px; width: 18px; flex-shrink: 0; text-align: center; }
+.t-name {
+  flex: 1;
+  font-size: 13.5px;
+  font-family: var(--mono);
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--cream);
+}
+.t-item.is-folder .t-name { color: var(--teal); font-weight: 500; }
+.t-chevron { font-size: 10px; color: var(--dim); transition: transform 0.2s; flex-shrink: 0; }
+.t-item.open .t-chevron { transform: rotate(90deg); }
+
+.t-children { padding-left: 22px; display: none; }
+.t-children.open { display: block; }
+
+.tree-loading {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--dim);
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ── FILE VIEW ─────────────────────────────────────────────────────────── */
+#file-view { padding-bottom: 80px; }
+
+.fv-header {
+  background: var(--s1);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.back-btn {
+  background: var(--s3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  width: 36px; height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+  color: var(--pink);
+  transition: background 0.15s;
+}
+.back-btn:active { background: rgba(255,120,172,0.1); }
+
+.fv-meta { flex: 1; min-width: 0; }
+.fv-name {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--cream);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fv-path {
+  font-size: 11px;
+  color: var(--dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 1px;
+}
+
+.fv-body { padding: 16px; }
+
+.code-block {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.75;
+  color: var(--cream);
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
+}
+
+.edit-area {
+  width: 100%;
+  min-height: 55vh;
+  background: var(--s2);
+  border: 1.5px solid var(--pink);
+  border-radius: 14px;
+  padding: 16px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.75;
+  color: var(--cream);
+  resize: vertical;
+  outline: none;
+  display: block;
+}
+
+.commit-field {
+  width: 100%;
+  background: var(--s3);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--cream);
+  outline: none;
+  margin-bottom: 10px;
+  transition: border-color 0.2s;
+}
+.commit-field:focus { border-color: rgba(255,120,172,0.4); }
+.commit-field::placeholder { color: var(--dim); }
+
+/* ── ACTION BAR ────────────────────────────────────────────────────────── */
+.action-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--s1);
+  border-top: 1px solid var(--border);
+  padding: 10px 14px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  gap: 8px;
+}
+.action-bar.hidden { display: none; }
+
+.btn-ghost {
+  flex: 1;
+  background: var(--s3);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 12px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--teal);
+  cursor: pointer;
+  transition: background 0.15s;
+  text-align: center;
+}
+.btn-ghost:active { background: rgba(168,213,227,0.06); }
+
+.btn-hot {
+  flex: 1.5;
+  background: var(--pink);
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  font-family: var(--display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--bg);
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  text-align: center;
+}
+.btn-hot:active { opacity: 0.8; transform: scale(0.97); }
+.btn-hot:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+/* ── FAB ───────────────────────────────────────────────────────────────── */
+#fab {
+  position: fixed;
+  bottom: 24px;
+  right: 18px;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  width: 54px; height: 54px;
+  background: var(--pink);
+  border: none;
+  border-radius: 17px;
+  font-size: 26px;
+  font-weight: 300;
+  color: var(--bg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 24px rgba(255,120,172,0.45);
+  z-index: 40;
+  transition: transform 0.2s, box-shadow 0.2s;
+  line-height: 1;
+}
+#fab:active { transform: scale(0.9); box-shadow: 0 3px 12px rgba(255,120,172,0.3); }
+#fab.hidden { display: none; }
+
+/* ── SHEETS ────────────────────────────────────────────────────────────── */
+.sheet-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.72);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  backdrop-filter: blur(4px);
+}
+.sheet-bg.hidden { display: none; }
+
+.sheet {
+  background: var(--s1);
+  border-radius: 22px 22px 0 0;
+  border-top: 1px solid var(--border);
+  padding: 16px 20px 28px;
+  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  max-height: 92dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.sheet-drag {
+  width: 38px; height: 4px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+.sheet-title {
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--cream);
+  margin-bottom: 20px;
+  letter-spacing: -0.3px;
+}
+
+.f-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--dim);
+  margin-bottom: 7px;
+  margin-top: 18px;
+}
+.f-label:first-of-type { margin-top: 0; }
+
+.f-input {
+  width: 100%;
+  background: var(--s3);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 13px 15px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--cream);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.f-input:focus { border-color: rgba(255,120,172,0.45); }
+.f-input::placeholder { color: var(--dim); font-family: var(--sans); font-size: 13px; }
+
+.f-textarea {
+  width: 100%;
+  min-height: 190px;
+  background: var(--s3);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 13px 15px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--cream);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.f-textarea:focus { border-color: rgba(255,120,172,0.45); }
+.f-textarea::placeholder { font-family: var(--sans); font-size: 13px; color: var(--dim); }
+
+.mode-row {
+  display: flex;
+  gap: 7px;
+  margin-bottom: 18px;
+}
+.mode-btn {
+  flex: 1;
+  padding: 10px 8px;
+  border-radius: 11px;
+  border: 1.5px solid var(--border);
+  background: var(--s3);
+  color: var(--dim);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--sans);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.mode-btn.on {
+  border-color: var(--pink);
+  background: rgba(255,120,172,0.08);
+  color: var(--pink);
+}
+
+/* ── SPINNER ───────────────────────────────────────────────────────────── */
+.spin {
+  display: inline-block;
+  width: 22px; height: 22px;
+  border: 2px solid var(--border);
+  border-top-color: var(--pink);
+  border-radius: 50%;
+  animation: spin 0.65s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── TOAST ─────────────────────────────────────────────────────────────── */
+#toast {
+  position: fixed;
+  top: 66px;
+  left: 14px;
+  right: 14px;
+  z-index: 999;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 13px 16px;
+  font-size: 13.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  transform: translateY(-12px);
+  opacity: 0;
+  transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s;
+  pointer-events: none;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+#toast.ok { border-color: rgba(94,255,200,0.3); color: var(--success); }
+#toast.bad { border-color: rgba(255,92,122,0.3); color: var(--error); }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ═══ AUTH ══════════════════════════════════════════════════════════════ -->
+<div id="auth-screen">
+  <div class="auth-glow glow-pink"></div>
+  <div class="auth-glow glow-teal"></div>
+
+  <div class="auth-mark">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+    </svg>
+  </div>
+
+  <div class="auth-title">Octave Deploy</div>
+  <div class="auth-sub">GitHub from your phone, instantly</div>
+
+  <div class="auth-field">
+    <input type="password" id="auth-pw" placeholder="Access password" autocomplete="current-password">
+  </div>
+  <button class="btn-pink" id="auth-btn" onclick="doAuth()">Unlock</button>
+  <div id="auth-error">Wrong password — try again</div>
+</div>
+
+<!-- ═══ APP ═══════════════════════════════════════════════════════════════ -->
+<div id="app" class="hidden">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <span class="topbar-wordmark">Deploy</span>
+    <div class="repo-pill" onclick="openRepoSheet()">
+      <span class="rp-icon">⚡</span>
+      <span class="rp-text" id="repo-label">tap to set repo</span>
+    </div>
+    <div class="top-icon-btn" onclick="loadTree()" title="Refresh">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+        <path d="M3 3v5h5"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div id="content">
+
+    <!-- TREE VIEW -->
+    <div class="view" id="tree-view">
+      <div class="section-label">Repository Files</div>
+      <div class="tree-wrap" id="tree-wrap">
+        <div class="tree-loading">
+          <div style="color:var(--dim)">Set a repo above to browse files</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILE VIEW -->
+    <div class="view hidden" id="file-view">
+      <div class="fv-header">
+        <div class="back-btn" onclick="backToTree()">←</div>
+        <div class="fv-meta">
+          <div class="fv-name" id="fv-name">—</div>
+          <div class="fv-path" id="fv-path">—</div>
+        </div>
+        <div class="top-icon-btn" onclick="copyFileContent()" title="Copy">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="fv-body">
+        <div id="fv-loading" class="tree-loading"><div class="spin"></div><div>Loading…</div></div>
+        <div id="fv-content" class="hidden">
+          <!-- view mode -->
+          <div id="fv-view">
+            <pre class="code-block" id="fv-code"></pre>
+          </div>
+          <!-- edit mode -->
+          <div id="fv-edit" class="hidden">
+            <input type="text" class="commit-field" id="fv-msg" placeholder="Commit message">
+            <textarea class="edit-area" id="fv-textarea"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FAB -->
+  <button id="fab" onclick="openUploadSheet()">+</button>
+
+  <!-- VIEW ACTIONS -->
+  <div class="action-bar hidden" id="bar-view">
+    <button class="btn-ghost" onclick="openAppendSheet()">+ Append</button>
+    <button class="btn-hot" onclick="enterEdit()">✏ Edit</button>
+  </div>
+
+  <!-- EDIT ACTIONS -->
+  <div class="action-bar hidden" id="bar-edit">
+    <button class="btn-ghost" onclick="cancelEdit()">Cancel</button>
+    <button class="btn-hot" id="commit-btn" onclick="commitFile()">💾 Commit</button>
+  </div>
+
+</div>
+
+<!-- ═══ UPLOAD SHEET ═══════════════════════════════════════════════════════ -->
+<div class="sheet-bg hidden" id="upload-sheet-bg">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-drag"></div>
+    <div class="sheet-title">Upload File</div>
+
+    <div class="mode-row">
+      <div class="mode-btn on" id="mode-overwrite" onclick="setMode('overwrite')">Overwrite</div>
+      <div class="mode-btn" id="mode-append" onclick="setMode('append')">Append</div>
+    </div>
+
+    <div class="f-label">File path</div>
+    <input type="text" class="f-input" id="up-path" placeholder="js/app.js  or  index.html">
+
+    <div class="f-label">Code</div>
+    <textarea class="f-textarea" id="up-code" placeholder="Paste code here…"></textarea>
+
+    <div class="f-label">Commit message</div>
+    <input type="text" class="f-input" id="up-msg" placeholder="optional">
+
+    <button class="btn-pink" style="margin-top:20px;width:100%" id="up-btn" onclick="submitUpload()">
+      Push to GitHub
+    </button>
+  </div>
+</div>
+
+<!-- ═══ APPEND SHEET ═══════════════════════════════════════════════════════ -->
+<div class="sheet-bg hidden" id="append-sheet-bg">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-drag"></div>
+    <div class="sheet-title">Append to File</div>
+    <div class="f-label">Code to add at bottom</div>
+    <textarea class="f-textarea" id="ap-code" placeholder="Paste code to append…"></textarea>
+    <div class="f-label">Commit message</div>
+    <input type="text" class="f-input" id="ap-msg" placeholder="optional">
+    <button class="btn-pink" style="margin-top:20px;width:100%" id="ap-btn" onclick="submitAppend()">
+      Append to GitHub
+    </button>
+  </div>
+</div>
+
+<!-- ═══ REPO SHEET ═══════════════════════════════════════════════════════ -->
+<div class="sheet-bg hidden" id="repo-sheet-bg">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-drag"></div>
+    <div class="sheet-title">Repository</div>
+    <div class="f-label">Owner / Repo</div>
+    <input type="text" class="f-input" id="repo-input" placeholder="mohsen7778/octave-music-player">
+    <button class="btn-pink" style="margin-top:20px;width:100%" onclick="saveRepo()">Load Repo</button>
+  </div>
+</div>
+
+<!-- ═══ TOAST ══════════════════════════════════════════════════════════════ -->
+<div id="toast"></div>
+
+<!-- ═══ SCRIPT ════════════════════════════════════════════════════════════ -->
+<script>
+// ── KEYS ──────────────────────────────────────────────────────────────────
+const K_PW   = 'odp_pw';
+const K_REPO = 'odp_repo';
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+let curFile = null;
+let curSha  = null;
+let upMode  = 'overwrite';
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+(function () {
+  const pw = localStorage.getItem(K_PW);
+  if (pw) { bootApp(); return; }
+  document.getElementById('auth-pw').addEventListener('keydown', e => e.key === 'Enter' && doAuth());
+})();
+
+// ── AUTH ──────────────────────────────────────────────────────────────────
+async function doAuth() {
+  const pw  = document.getElementById('auth-pw').value.trim();
+  if (!pw)  return;
+  const btn = document.getElementById('auth-btn');
+  btn.disabled = true; btn.textContent = 'Checking…';
+
+  try {
+    const r = await fetch('/api', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${pw}` },
+      body: JSON.stringify({ action: 'auth' })
+    });
+    if (r.status === 401) throw new Error('bad');
+    localStorage.setItem(K_PW, pw);
+    bootApp();
+  } catch {
+    document.getElementById('auth-error').classList.add('show');
+    btn.disabled = false; btn.textContent = 'Unlock';
+  }
+}
+
+function getPw() { return localStorage.getItem(K_PW) || ''; }
+
+// ── BOOT ──────────────────────────────────────────────────────────────────
+function bootApp() {
+  document.getElementById('auth-screen').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  const repo = localStorage.getItem(K_REPO);
+  if (repo) { document.getElementById('repo-label').textContent = repo; loadTree(); }
+  else openRepoSheet();
+}
+
+// ── API ───────────────────────────────────────────────────────────────────
+async function api(body) {
+  const r = await fetch('/api', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getPw()}` },
+    body: JSON.stringify({ ...body, repo: localStorage.getItem(K_REPO) })
+  });
+  if (r.status === 401) { localStorage.removeItem(K_PW); location.reload(); }
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error || 'API error');
+  return d;
+}
+
+// ── TREE ──────────────────────────────────────────────────────────────────
+async function loadTree() {
+  if (!localStorage.getItem(K_REPO)) return;
+  const wrap = document.getElementById('tree-wrap');
+  wrap.innerHTML = `<div class="tree-loading"><div class="spin"></div><div>Loading files…</div></div>`;
+  try {
+    const data = await api({ action: 'tree' });
+    buildTree(data.tree || [], wrap);
+  } catch (e) {
+    wrap.innerHTML = `<div class="tree-loading" style="color:var(--error)">⚠ ${e.message}</div>`;
+  }
+}
+
+function buildTree(flat, container) {
+  const root = {};
+  flat.forEach(({ path, type }) => {
+    const parts = path.split('/');
+    let node = root;
+    parts.forEach((p, i) => {
+      if (!node[p]) node[p] = { _type: i < parts.length - 1 ? 'tree' : type, _path: parts.slice(0, i + 1).join('/'), _kids: {} };
+      node = node[p]._kids;
+    });
+  });
+  container.innerHTML = '';
+  renderLevel(root, container);
+}
+
+function renderLevel(obj, el) {
+  const sorted = Object.entries(obj).sort(([an, av], [bn, bv]) => {
+    const af = av._type === 'tree', bf = bv._type === 'tree';
+    if (af && !bf) return -1; if (!af && bf) return 1;
+    return an.localeCompare(bn);
+  });
+  sorted.forEach(([name, node]) => {
+    const isDir = node._type === 'tree';
+    const ext = name.split('.').pop().toLowerCase();
+    const ico = isDir ? '📁' : fileIcon(ext);
+    const row = document.createElement('div');
+    row.className = `t-item${isDir ? ' is-folder' : ''}`;
+    row.innerHTML = `<span class="t-icon">${ico}</span><span class="t-name">${name}</span>${isDir ? '<span class="t-chevron">›</span>' : ''}`;
+    el.appendChild(row);
+    if (isDir) {
+      const kids = document.createElement('div');
+      kids.className = 't-children';
+      renderLevel(node._kids, kids);
+      el.appendChild(kids);
+      row.addEventListener('click', () => {
+        const open = row.classList.toggle('open');
+        kids.classList.toggle('open', open);
+        row.querySelector('.t-icon').textContent = open ? '📂' : '📁';
+      });
+    } else {
+      row.addEventListener('click', () => openFile(node._path, name));
+    }
+  });
+}
+
+function fileIcon(ext) {
+  return { js:'🟨', jsx:'⚛️', ts:'🔷', tsx:'⚛️', html:'🌐', css:'🎨', json:'📋', md:'📝', txt:'📄', svg:'🖼️', png:'🖼️', jpg:'🖼️', sh:'⚙️', py:'🐍', env:'🔐', yml:'⚙️' }[ext] || '📄';
+}
+
+// ── FILE VIEW ─────────────────────────────────────────────────────────────
+async function openFile(path, name) {
+  curFile = path; curSha = null;
+
+  // slide tree out, file in
+  document.getElementById('tree-view').classList.add('slide-left');
+  setTimeout(() => {
+    document.getElementById('tree-view').classList.add('hidden');
+    document.getElementById('tree-view').classList.remove('slide-left');
+  }, 280);
+  document.getElementById('file-view').classList.remove('hidden');
+  document.getElementById('fab').classList.add('hidden');
+
+  document.getElementById('fv-name').textContent = name;
+  document.getElementById('fv-path').textContent = path;
+  document.getElementById('fv-loading').classList.remove('hidden');
+  document.getElementById('fv-content').classList.add('hidden');
+  document.getElementById('fv-msg').value = `Update ${name}`;
+
+  showBar('none');
+
+  const binExts = ['png','jpg','jpeg','gif','ico','woff','woff2','ttf','mp3','mp4','zip','pdf'];
+  if (binExts.includes(name.split('.').pop().toLowerCase())) {
+    document.getElementById('fv-loading').classList.add('hidden');
+    document.getElementById('fv-code').textContent = '[Binary file — preview not available]';
+    document.getElementById('fv-content').classList.remove('hidden');
+    document.getElementById('fv-view').classList.remove('hidden');
+    document.getElementById('fv-edit').classList.add('hidden');
+    showBar('view');
+    return;
+  }
+
+  try {
+    const d = await api({ action: 'get', path });
+    curSha = d.sha;
+    const text = b64Decode(d.content);
+    document.getElementById('fv-textarea').value = text;
+    document.getElementById('fv-code').textContent = text;
+    document.getElementById('fv-loading').classList.add('hidden');
+    document.getElementById('fv-view').classList.remove('hidden');
+    document.getElementById('fv-edit').classList.add('hidden');
+    document.getElementById('fv-content').classList.remove('hidden');
+    showBar('view');
+  } catch (e) {
+    document.getElementById('fv-loading').innerHTML = `<div style="color:var(--error)">⚠ ${e.message}</div>`;
+  }
+}
+
+function backToTree() {
+  document.getElementById('file-view').classList.add('hidden');
+  document.getElementById('tree-view').classList.remove('hidden');
+  document.getElementById('fab').classList.remove('hidden');
+  showBar('none');
+  cancelEdit();
+  curFile = null; curSha = null;
+}
+
+function enterEdit() {
+  document.getElementById('fv-view').classList.add('hidden');
+  document.getElementById('fv-edit').classList.remove('hidden');
+  showBar('edit');
+  document.getElementById('fv-textarea').focus();
+}
+
+function cancelEdit() {
+  document.getElementById('fv-view').classList.remove('hidden');
+  document.getElementById('fv-edit').classList.add('hidden');
+  if (curFile) showBar('view');
+}
+
+async function commitFile() {
+  const content = document.getElementById('fv-textarea').value;
+  const msg = document.getElementById('fv-msg').value || `Update ${curFile}`;
+  const btn = document.getElementById('commit-btn');
+  btn.textContent = 'Saving…'; btn.disabled = true;
+  try {
+    await api({ action: 'upload', path: curFile, content, message: msg, sha: curSha });
+    toast('✓ Committed', 'ok');
+    document.getElementById('fv-code').textContent = content;
+    cancelEdit();
+    // refresh SHA silently
+    api({ action: 'get', path: curFile }).then(d => { curSha = d.sha; }).catch(() => {});
+  } catch (e) { toast('✗ ' + e.message, 'bad'); }
+  btn.textContent = '💾 Commit'; btn.disabled = false;
+}
+
+function copyFileContent() {
+  const text = document.getElementById('fv-textarea').value || document.getElementById('fv-code').textContent;
+  navigator.clipboard?.writeText(text).then(() => toast('Copied!', 'ok'));
+}
+
+function showBar(mode) {
+  document.getElementById('bar-view').classList.toggle('hidden', mode !== 'view');
+  document.getElementById('bar-edit').classList.toggle('hidden', mode !== 'edit');
+}
+
+// ── APPEND SHEET ──────────────────────────────────────────────────────────
+function openAppendSheet() {
+  document.getElementById('ap-code').value = '';
+  document.getElementById('ap-msg').value = `Append to ${curFile}`;
+  document.getElementById('append-sheet-bg').classList.remove('hidden');
+}
+
+async function submitAppend() {
+  const content = document.getElementById('ap-code').value.trim();
+  const msg = document.getElementById('ap-msg').value || `Append to ${curFile}`;
+  if (!content) return;
+  const btn = document.getElementById('ap-btn');
+  btn.textContent = 'Appending…'; btn.disabled = true;
+  try {
+    await api({ action: 'append', path: curFile, content, message: msg });
+    toast('✓ Appended!', 'ok');
+    closeSheet('append-sheet-bg');
+    openFile(curFile, curFile.split('/').pop());
+  } catch (e) { toast('✗ ' + e.message, 'bad'); }
+  btn.textContent = 'Append to GitHub'; btn.disabled = false;
+}
+
+// ── UPLOAD SHEET ──────────────────────────────────────────────────────────
+function openUploadSheet() {
+  document.getElementById('up-path').value = '';
+  document.getElementById('up-code').value = '';
+  document.getElementById('up-msg').value = '';
+  document.getElementById('upload-sheet-bg').classList.remove('hidden');
+}
+
+function setMode(m) {
+  upMode = m;
+  document.getElementById('mode-overwrite').classList.toggle('on', m === 'overwrite');
+  document.getElementById('mode-append').classList.toggle('on', m === 'append');
+}
+
+async function submitUpload() {
+  const path    = document.getElementById('up-path').value.trim();
+  const content = document.getElementById('up-code').value;
+  const msg     = document.getElementById('up-msg').value || `${upMode}: ${path}`;
+  if (!path || !content) { toast('Fill in path + code', 'bad'); return; }
+  const btn = document.getElementById('up-btn');
+  btn.textContent = 'Pushing…'; btn.disabled = true;
+  try {
+    await api({ action: upMode === 'append' ? 'append' : 'upload', path, content, message: msg });
+    toast('✓ Pushed to GitHub!', 'ok');
+    closeSheet('upload-sheet-bg');
+    loadTree();
+  } catch (e) { toast('✗ ' + e.message, 'bad'); }
+  btn.textContent = 'Push to GitHub'; btn.disabled = false;
+}
+
+// ── REPO SHEET ────────────────────────────────────────────────────────────
+function openRepoSheet() {
+  document.getElementById('repo-input').value = localStorage.getItem(K_REPO) || '';
+  document.getElementById('repo-sheet-bg').classList.remove('hidden');
+}
+
+function saveRepo() {
+  const v = document.getElementById('repo-input').value.trim();
+  if (!v.includes('/')) { toast('Format: owner/repo', 'bad'); return; }
+  localStorage.setItem(K_REPO, v);
+  document.getElementById('repo-label').textContent = v;
+  closeSheet('repo-sheet-bg');
+  loadTree();
+}
+
+// ── SHEET HELPERS ─────────────────────────────────────────────────────────
+function closeSheet(id) { document.getElementById(id).classList.add('hidden'); }
+document.querySelectorAll('.sheet-bg').forEach(bg => {
+  bg.addEventListener('click', e => { if (e.target === bg) bg.classList.add('hidden'); });
+});
+
+// ── B64 DECODE (UTF-8 safe) ───────────────────────────────────────────────
+function b64Decode(b64) {
+  try {
+    const binary = atob(b64.replace(/\s/g, ''));
+    const bytes  = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  } catch { return ''; }
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────
+let _tt;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast show ${type}`;
+  clearTimeout(_tt);
+  _tt = setTimeout(() => el.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
