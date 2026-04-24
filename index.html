@@ -31,6 +31,7 @@
   --dim:     rgba(242,240,234,0.38);
   --success: #5EFFC8;
   --error:   #FF5C7A;
+  --warn:    #FFD166;
   --mono: 'DM Mono', monospace;
   --sans: 'DM Sans', sans-serif;
   --display: 'Syne', sans-serif;
@@ -44,7 +45,6 @@ html, body {
   overflow: hidden;
 }
 
-/* ── SCROLLBAR ─────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(255,120,172,0.3); border-radius: 2px; }
@@ -67,16 +67,8 @@ html, body {
   filter: blur(80px);
   pointer-events: none;
 }
-.glow-pink {
-  width: 300px; height: 300px;
-  background: rgba(255,120,172,0.15);
-  top: -60px; left: -80px;
-}
-.glow-teal {
-  width: 260px; height: 260px;
-  background: rgba(168,213,227,0.1);
-  bottom: -40px; right: -60px;
-}
+.glow-pink { width: 300px; height: 300px; background: rgba(255,120,172,0.15); top: -60px; left: -80px; }
+.glow-teal { width: 260px; height: 260px; background: rgba(168,213,227,0.1); bottom: -40px; right: -60px; }
 
 .auth-mark {
   width: 64px; height: 64px;
@@ -97,10 +89,7 @@ html, body {
   background: linear-gradient(135deg, rgba(255,120,172,0.4), transparent 60%);
   pointer-events: none;
 }
-.auth-mark svg {
-  width: 28px; height: 28px;
-  color: var(--pink);
-}
+.auth-mark svg { width: 28px; height: 28px; color: var(--pink); }
 
 .auth-title {
   font-family: var(--display);
@@ -113,19 +102,9 @@ html, body {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+.auth-sub { font-size: 14px; color: var(--dim); margin-bottom: 44px; }
 
-.auth-sub {
-  font-size: 14px;
-  color: var(--dim);
-  margin-bottom: 44px;
-}
-
-.auth-field {
-  width: 100%;
-  max-width: 340px;
-  position: relative;
-  margin-bottom: 14px;
-}
+.auth-field { width: 100%; max-width: 340px; position: relative; margin-bottom: 14px; }
 .auth-field input {
   width: 100%;
   background: var(--s2);
@@ -173,12 +152,7 @@ html, body {
 #auth-error.show { opacity: 1; }
 
 /* ── APP SHELL ──────────────────────────────────────────────────────────── */
-#app {
-  height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
+#app { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
 
 /* ── TOPBAR ────────────────────────────────────────────────────────────── */
 .topbar {
@@ -191,7 +165,6 @@ html, body {
   flex-shrink: 0;
   min-height: 56px;
 }
-
 .topbar-wordmark {
   font-family: var(--display);
   font-size: 16px;
@@ -200,7 +173,6 @@ html, body {
   flex-shrink: 0;
   letter-spacing: -0.3px;
 }
-
 .repo-pill {
   flex: 1;
   min-width: 0;
@@ -227,7 +199,6 @@ html, body {
   flex: 1;
   font-weight: 500;
 }
-
 .top-icon-btn {
   width: 36px; height: 36px;
   background: var(--s3);
@@ -245,11 +216,7 @@ html, body {
 .top-icon-btn:active { color: var(--cream); border-color: var(--border); }
 
 /* ── CONTENT ────────────────────────────────────────────────────────────── */
-#content {
-  flex: 1;
-  overflow: hidden;
-  position: relative;
-}
+#content { flex: 1; overflow: hidden; position: relative; }
 
 .view {
   position: absolute;
@@ -259,16 +226,8 @@ html, body {
   -webkit-overflow-scrolling: touch;
   transition: transform 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.2s;
 }
-.view.hidden {
-  pointer-events: none;
-  opacity: 0;
-  transform: translateX(20px);
-}
-.view.slide-left {
-  transform: translateX(-30px);
-  opacity: 0;
-  pointer-events: none;
-}
+.view.hidden { pointer-events: none; opacity: 0; transform: translateX(20px); }
+.view.slide-left { transform: translateX(-30px); opacity: 0; pointer-events: none; }
 
 /* ── TREE VIEW ─────────────────────────────────────────────────────────── */
 #tree-view { padding-bottom: 90px; }
@@ -281,9 +240,7 @@ html, body {
   letter-spacing: 2px;
   color: var(--dim);
 }
-
 .tree-wrap { padding: 0 8px; }
-
 .t-item {
   display: flex;
   align-items: center;
@@ -296,7 +253,6 @@ html, body {
   user-select: none;
 }
 .t-item:active { background: rgba(255,120,172,0.06); }
-
 .t-icon { font-size: 14px; width: 18px; flex-shrink: 0; text-align: center; }
 .t-name {
   flex: 1;
@@ -311,10 +267,8 @@ html, body {
 .t-item.is-folder .t-name { color: var(--teal); font-weight: 500; }
 .t-chevron { font-size: 10px; color: var(--dim); transition: transform 0.2s; flex-shrink: 0; }
 .t-item.open .t-chevron { transform: rotate(90deg); }
-
 .t-children { padding-left: 22px; display: none; }
 .t-children.open { display: block; }
-
 .tree-loading {
   padding: 60px 20px;
   text-align: center;
@@ -340,7 +294,6 @@ html, body {
   top: 0;
   z-index: 10;
 }
-
 .back-btn {
   background: var(--s3);
   border: 1px solid var(--border);
@@ -356,7 +309,6 @@ html, body {
   transition: background 0.15s;
 }
 .back-btn:active { background: rgba(255,120,172,0.1); }
-
 .fv-meta { flex: 1; min-width: 0; }
 .fv-name {
   font-family: var(--mono);
@@ -368,13 +320,7 @@ html, body {
   white-space: nowrap;
 }
 .fv-path-row { display: flex; align-items: center; gap: 6px; margin-top: 1px; overflow: hidden; }
-.fv-path {
-  font-size: 11px;
-  color: var(--dim);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+.fv-path { font-size: 11px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fv-lines-badge {
   font-size: 10px;
   font-family: var(--mono);
@@ -387,9 +333,7 @@ html, body {
   flex-shrink: 0;
   white-space: nowrap;
 }
-
 .fv-body { padding: 16px; }
-
 .code-block {
   background: var(--s2);
   border: 1px solid var(--border);
@@ -403,7 +347,6 @@ html, body {
   word-break: break-word;
   overflow-x: auto;
 }
-
 .edit-area {
   width: 100%;
   min-height: 55vh;
@@ -419,7 +362,6 @@ html, body {
   outline: none;
   display: block;
 }
-
 .commit-field {
   width: 100%;
   background: var(--s3);
@@ -452,18 +394,9 @@ html, body {
 }
 .action-bar.hidden { display: none; }
 
-/* Edit bar is 2-row */
-#bar-edit {
-  flex-direction: column;
-  gap: 7px;
-}
-.bar-row {
-  display: flex;
-  gap: 8px;
-  width: 100%;
-}
+#bar-edit { flex-direction: column; gap: 7px; }
+.bar-row { display: flex; gap: 8px; width: 100%; }
 
-/* ── BASE BUTTON STYLES ───────────────────────────────────────────────── */
 .btn-ghost {
   flex: 1;
   background: var(--s3);
@@ -500,29 +433,11 @@ html, body {
 .btn-hot:active { opacity: 0.8; transform: scale(0.97); }
 .btn-hot:disabled { opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none; }
 
-/* ── CUT & PASTE BUTTONS ──────────────────────────────────────────────── */
-.btn-cut {
-  background: rgba(255,92,122,0.1);
-  border: 1.5px solid rgba(255,92,122,0.28);
-  color: #FF7090;
-}
+.btn-cut { background: rgba(255,92,122,0.1); border: 1.5px solid rgba(255,92,122,0.28); color: #FF7090; }
 .btn-cut:active { background: rgba(255,92,122,0.18) !important; }
-
-.btn-paste {
-  background: rgba(94,255,200,0.08);
-  border: 1.5px solid rgba(94,255,200,0.22);
-  color: var(--success);
-}
+.btn-paste { background: rgba(94,255,200,0.08); border: 1.5px solid rgba(94,255,200,0.22); color: var(--success); }
 .btn-paste:active { background: rgba(94,255,200,0.15) !important; }
-
-.btn-cancel {
-  background: var(--s3);
-  border: 1.5px solid var(--border);
-  color: var(--dim);
-  font-family: var(--display);
-  font-size: 14px;
-  font-weight: 700;
-}
+.btn-cancel { background: var(--s3); border: 1.5px solid var(--border); color: var(--dim); font-family: var(--display); font-size: 14px; font-weight: 700; }
 
 /* ── FAB ───────────────────────────────────────────────────────────────── */
 #fab {
@@ -561,7 +476,6 @@ html, body {
   backdrop-filter: blur(4px);
 }
 .sheet-bg.hidden { display: none; }
-
 .sheet {
   background: var(--s1);
   border-radius: 22px 22px 0 0;
@@ -572,20 +486,8 @@ html, body {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
-.sheet-drag {
-  width: 38px; height: 4px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 2px;
-  margin: 0 auto 20px;
-}
-.sheet-title {
-  font-family: var(--display);
-  font-size: 20px;
-  font-weight: 800;
-  color: var(--cream);
-  margin-bottom: 20px;
-  letter-spacing: -0.3px;
-}
+.sheet-drag { width: 38px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin: 0 auto 20px; }
+.sheet-title { font-family: var(--display); font-size: 20px; font-weight: 800; color: var(--cream); margin-bottom: 20px; letter-spacing: -0.3px; }
 
 .f-label {
   font-size: 10px;
@@ -597,7 +499,6 @@ html, body {
   margin-top: 18px;
 }
 .f-label:first-of-type { margin-top: 0; }
-
 .f-input {
   width: 100%;
   background: var(--s3);
@@ -612,7 +513,6 @@ html, body {
 }
 .f-input:focus { border-color: rgba(255,120,172,0.45); }
 .f-input::placeholder { color: var(--dim); font-family: var(--sans); font-size: 13px; }
-
 .f-textarea {
   width: 100%;
   min-height: 190px;
@@ -631,11 +531,7 @@ html, body {
 .f-textarea:focus { border-color: rgba(255,120,172,0.45); }
 .f-textarea::placeholder { font-family: var(--sans); font-size: 13px; color: var(--dim); }
 
-.mode-row {
-  display: flex;
-  gap: 7px;
-  margin-bottom: 18px;
-}
+.mode-row { display: flex; gap: 7px; margin-bottom: 18px; }
 .mode-btn {
   flex: 1;
   padding: 10px 8px;
@@ -650,11 +546,7 @@ html, body {
   transition: all 0.15s;
   text-align: center;
 }
-.mode-btn.on {
-  border-color: var(--pink);
-  background: rgba(255,120,172,0.08);
-  color: var(--pink);
-}
+.mode-btn.on { border-color: var(--pink); background: rgba(255,120,172,0.08); color: var(--pink); }
 
 /* ── SPINNER ───────────────────────────────────────────────────────────── */
 .spin {
@@ -693,6 +585,162 @@ html, body {
 #toast.ok { border-color: rgba(94,255,200,0.3); color: var(--success); }
 #toast.bad { border-color: rgba(255,92,122,0.3); color: var(--error); }
 
+/* ── FIND & REPLACE PANEL ──────────────────────────────────────────────── */
+#fnr-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 80;
+  background: var(--s1);
+  border-top: 1px solid rgba(255,209,102,0.25);
+  padding: 12px 14px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 -8px 32px rgba(0,0,0,0.4);
+}
+#fnr-panel.open {
+  transform: translateY(0);
+}
+
+/* Push edit bar up when F&R open */
+#fnr-panel.open ~ * { /* handled in JS */ }
+
+.fnr-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.fnr-row:last-child { margin-bottom: 0; }
+
+.fnr-input {
+  flex: 1;
+  background: var(--s3);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--cream);
+  outline: none;
+  min-width: 0;
+  transition: border-color 0.2s;
+}
+.fnr-input:focus { border-color: rgba(255,209,102,0.5); }
+.fnr-input::placeholder { color: var(--dim); font-family: var(--sans); font-size: 12px; }
+
+.fnr-count {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--warn);
+  background: rgba(255,209,102,0.08);
+  border: 1px solid rgba(255,209,102,0.2);
+  border-radius: 7px;
+  padding: 4px 9px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 42px;
+  text-align: center;
+}
+.fnr-count.no-match {
+  color: var(--error);
+  background: rgba(255,92,122,0.08);
+  border-color: rgba(255,92,122,0.2);
+}
+
+.fnr-btn {
+  background: var(--s3);
+  border: 1.5px solid var(--border2);
+  border-radius: 9px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--teal);
+  cursor: pointer;
+  font-family: var(--display);
+  font-weight: 700;
+  flex-shrink: 0;
+  transition: background 0.12s, transform 0.1s;
+  white-space: nowrap;
+}
+.fnr-btn:active { background: rgba(168,213,227,0.1); transform: scale(0.95); }
+.fnr-btn.warn-btn {
+  color: var(--warn);
+  border-color: rgba(255,209,102,0.22);
+  background: rgba(255,209,102,0.06);
+}
+.fnr-btn.warn-btn:active { background: rgba(255,209,102,0.14); }
+.fnr-btn.hot-btn {
+  color: var(--bg);
+  background: var(--pink);
+  border-color: transparent;
+  box-shadow: 0 2px 10px rgba(255,120,172,0.3);
+}
+.fnr-btn.hot-btn:active { opacity: 0.8; }
+.fnr-close {
+  background: none;
+  border: none;
+  color: var(--dim);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 6px;
+  flex-shrink: 0;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.fnr-close:active { color: var(--cream); }
+
+.fnr-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--dim);
+  width: 44px;
+  flex-shrink: 0;
+}
+
+/* Checkbox toggle for case sensitive */
+.fnr-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 11px;
+  color: var(--dim);
+  font-family: var(--sans);
+  user-select: none;
+  flex-shrink: 0;
+}
+.fnr-toggle input { display: none; }
+.fnr-toggle-dot {
+  width: 28px; height: 16px;
+  background: var(--s3);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  position: relative;
+  transition: background 0.2s, border-color 0.2s;
+  flex-shrink: 0;
+}
+.fnr-toggle-dot::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 8px; height: 8px;
+  background: var(--dim);
+  border-radius: 50%;
+  transition: transform 0.2s, background 0.2s;
+}
+.fnr-toggle input:checked + .fnr-toggle-dot {
+  background: rgba(255,209,102,0.15);
+  border-color: rgba(255,209,102,0.4);
+}
+.fnr-toggle input:checked + .fnr-toggle-dot::after {
+  transform: translateX(12px);
+  background: var(--warn);
+}
+
 .hidden { display: none !important; }
 </style>
 </head>
@@ -702,16 +750,13 @@ html, body {
 <div id="auth-screen">
   <div class="auth-glow glow-pink"></div>
   <div class="auth-glow glow-teal"></div>
-
   <div class="auth-mark">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
     </svg>
   </div>
-
   <div class="auth-title">Octave Deploy</div>
   <div class="auth-sub">GitHub from your phone, instantly</div>
-
   <div class="auth-field">
     <input type="password" id="auth-pw" placeholder="Access password" autocomplete="current-password">
   </div>
@@ -761,6 +806,13 @@ html, body {
             <span class="fv-lines-badge" id="fv-lines"></span>
           </div>
         </div>
+        <!-- Find & Replace toggle -->
+        <div class="top-icon-btn" id="fnr-toggle-btn" onclick="toggleFnR()" title="Find & Replace" style="display:none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            <path d="M11 8v6M8 11h6"/>
+          </svg>
+        </div>
         <div class="top-icon-btn" onclick="copyFileContent()" title="Copy">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
@@ -771,11 +823,9 @@ html, body {
       <div class="fv-body">
         <div id="fv-loading" class="tree-loading"><div class="spin"></div><div>Loading…</div></div>
         <div id="fv-content" class="hidden">
-          <!-- view mode -->
           <div id="fv-view">
             <pre class="code-block" id="fv-code"></pre>
           </div>
-          <!-- edit mode -->
           <div id="fv-edit" class="hidden">
             <input type="text" class="commit-field" id="fv-msg" placeholder="Commit message">
             <textarea class="edit-area" id="fv-textarea"></textarea>
@@ -809,29 +859,47 @@ html, body {
 
 </div>
 
+<!-- ═══ FIND & REPLACE PANEL ══════════════════════════════════════════════ -->
+<div id="fnr-panel">
+  <!-- Row 1: Find -->
+  <div class="fnr-row">
+    <span class="fnr-label">Find</span>
+    <input type="text" class="fnr-input" id="fnr-find" placeholder="Search text…" oninput="fnrOnInput()">
+    <span class="fnr-count" id="fnr-count">—</span>
+    <button class="fnr-btn" onclick="fnrPrev()" title="Previous match">↑</button>
+    <button class="fnr-btn" onclick="fnrNext()" title="Next match">↓</button>
+    <button class="fnr-close" onclick="closeFnR()">×</button>
+  </div>
+  <!-- Row 2: Replace -->
+  <div class="fnr-row">
+    <span class="fnr-label">With</span>
+    <input type="text" class="fnr-input" id="fnr-replace" placeholder="Replace with…">
+    <label class="fnr-toggle" title="Case sensitive">
+      <input type="checkbox" id="fnr-case" onchange="fnrOnInput()">
+      <span class="fnr-toggle-dot"></span>
+      <span>Aa</span>
+    </label>
+    <button class="fnr-btn warn-btn" onclick="fnrReplaceOne()">1×</button>
+    <button class="fnr-btn hot-btn" onclick="fnrReplaceAll()">All</button>
+  </div>
+</div>
+
 <!-- ═══ UPLOAD SHEET ═══════════════════════════════════════════════════════ -->
 <div class="sheet-bg hidden" id="upload-sheet-bg">
   <div class="sheet" onclick="event.stopPropagation()">
     <div class="sheet-drag"></div>
     <div class="sheet-title">Upload File</div>
-
     <div class="mode-row">
       <div class="mode-btn on" id="mode-overwrite" onclick="setMode('overwrite')">Overwrite</div>
       <div class="mode-btn" id="mode-append" onclick="setMode('append')">Append</div>
     </div>
-
     <div class="f-label">File path</div>
     <input type="text" class="f-input" id="up-path" placeholder="js/app.js  or  index.html">
-
     <div class="f-label">Code</div>
     <textarea class="f-textarea" id="up-code" placeholder="Paste code here…"></textarea>
-
     <div class="f-label">Commit message</div>
     <input type="text" class="f-input" id="up-msg" placeholder="optional">
-
-    <button class="btn-pink" style="margin-top:20px;width:100%" id="up-btn" onclick="submitUpload()">
-      Push to GitHub
-    </button>
+    <button class="btn-pink" style="margin-top:20px;width:100%" id="up-btn" onclick="submitUpload()">Push to GitHub</button>
   </div>
 </div>
 
@@ -844,9 +912,7 @@ html, body {
     <textarea class="f-textarea" id="ap-code" placeholder="Paste code to append…"></textarea>
     <div class="f-label">Commit message</div>
     <input type="text" class="f-input" id="ap-msg" placeholder="optional">
-    <button class="btn-pink" style="margin-top:20px;width:100%" id="ap-btn" onclick="submitAppend()">
-      Append to GitHub
-    </button>
+    <button class="btn-pink" style="margin-top:20px;width:100%" id="ap-btn" onclick="submitAppend()">Append to GitHub</button>
   </div>
 </div>
 
@@ -875,6 +941,11 @@ let curFile = null;
 let curSha  = null;
 let upMode  = 'overwrite';
 
+// Find & Replace state
+let fnrMatches  = [];   // array of {start, end} indices in textarea value
+let fnrCurrent  = -1;   // index into fnrMatches
+let fnrOpen     = false;
+
 // ── INIT ──────────────────────────────────────────────────────────────────
 (function () {
   const pw = localStorage.getItem(K_PW);
@@ -888,7 +959,6 @@ async function doAuth() {
   if (!pw)  return;
   const btn = document.getElementById('auth-btn');
   btn.disabled = true; btn.textContent = 'Checking…';
-
   try {
     const r = await fetch('/api', {
       method: 'POST',
@@ -922,7 +992,7 @@ async function api(body) {
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getPw()}` },
     body: JSON.stringify({ ...body, repo: localStorage.getItem(K_REPO) })
   });
-  if (r.status === 401) { localStorage.removeItem(K_PW); location.reload(); }
+  if (r.status === 401) { localStorage.removeItem(K_PW'); location.reload(); }
   const d = await r.json();
   if (!r.ok) throw new Error(d.error || 'API error');
   return d;
@@ -992,6 +1062,7 @@ function fileIcon(ext) {
 // ── FILE VIEW ─────────────────────────────────────────────────────────────
 async function openFile(path, name) {
   curFile = path; curSha = null;
+  closeFnR();
 
   document.getElementById('tree-view').classList.add('slide-left');
   setTimeout(() => {
@@ -1006,6 +1077,7 @@ async function openFile(path, name) {
   document.getElementById('fv-loading').classList.remove('hidden');
   document.getElementById('fv-content').classList.add('hidden');
   document.getElementById('fv-msg').value = `Update ${name}`;
+  document.getElementById('fnr-toggle-btn').style.display = 'none';
 
   showBar('none');
 
@@ -1038,9 +1110,11 @@ async function openFile(path, name) {
 }
 
 function backToTree() {
+  closeFnR();
   document.getElementById('file-view').classList.add('hidden');
   document.getElementById('tree-view').classList.remove('hidden');
   document.getElementById('fab').classList.remove('hidden');
+  document.getElementById('fnr-toggle-btn').style.display = 'none';
   showBar('none');
   cancelEdit();
   curFile = null; curSha = null;
@@ -1049,12 +1123,15 @@ function backToTree() {
 function enterEdit() {
   document.getElementById('fv-view').classList.add('hidden');
   document.getElementById('fv-edit').classList.remove('hidden');
+  document.getElementById('fnr-toggle-btn').style.display = 'flex';
   showBar('edit');
 }
 
 function cancelEdit() {
+  closeFnR();
   document.getElementById('fv-view').classList.remove('hidden');
   document.getElementById('fv-edit').classList.add('hidden');
+  document.getElementById('fnr-toggle-btn').style.display = 'none';
   if (curFile) showBar('view');
 }
 
@@ -1078,23 +1155,23 @@ function copyFileContent() {
   navigator.clipboard?.writeText(text).then(() => toast('Copied!', 'ok'));
 }
 
-// ── CLEAR EDITOR ─────────────────────────────────────────────────────────
 function cutAll() {
   const ta = document.getElementById('fv-textarea');
   if (!ta.value) { toast('Editor already empty', 'bad'); return; }
   ta.value = '';
   ta.blur();
   updateLineCount('');
+  fnrClearState();
   toast('🗑 Editor cleared', 'ok');
 }
 
-// ── PASTE TO EDITOR ───────────────────────────────────────────────────────
 async function pasteToEditor() {
   try {
     const text = await navigator.clipboard.readText();
     if (!text) { toast('Clipboard is empty', 'bad'); return; }
     document.getElementById('fv-textarea').value = text;
     updateLineCount(text);
+    fnrOnInput();
     toast('📋 Pasted!', 'ok');
   } catch {
     toast('⚠ Clipboard access denied', 'bad');
@@ -1179,9 +1256,9 @@ function updateLineCount(text) {
   document.getElementById('fv-lines').textContent = n ? `${n} ln` : '';
 }
 
-// Live update while editing
 document.getElementById('fv-textarea').addEventListener('input', function () {
   updateLineCount(this.value);
+  if (fnrOpen) fnrOnInput();
 });
 
 // ── SHEET HELPERS ─────────────────────────────────────────────────────────
@@ -1210,12 +1287,187 @@ function toast(msg, type = '') {
   _tt = setTimeout(() => el.classList.remove('show'), 3000);
 }
 
+// ════════════════════════════════════════════════════════════════════════════
+// ── FIND & REPLACE ───────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════
+
+function toggleFnR() {
+  if (fnrOpen) closeFnR();
+  else openFnR();
+}
+
+function openFnR() {
+  fnrOpen = true;
+  const panel = document.getElementById('fnr-panel');
+  const barEdit = document.getElementById('bar-edit');
+  panel.classList.add('open');
+  // Push edit bar up above the F&R panel
+  const panelH = panel.offsetHeight || 110;
+  barEdit.style.bottom = panelH + 'px';
+  // Highlight the icon button
+  document.getElementById('fnr-toggle-btn').style.borderColor = 'rgba(255,209,102,0.5)';
+  document.getElementById('fnr-toggle-btn').style.color = 'var(--warn)';
+  // Focus find input
+  setTimeout(() => document.getElementById('fnr-find').focus(), 320);
+  fnrOnInput();
+}
+
+function closeFnR() {
+  fnrOpen = false;
+  const panel = document.getElementById('fnr-panel');
+  const barEdit = document.getElementById('bar-edit');
+  panel.classList.remove('open');
+  barEdit.style.bottom = '';
+  // Reset icon button style
+  const btn = document.getElementById('fnr-toggle-btn');
+  btn.style.borderColor = '';
+  btn.style.color = '';
+  fnrClearState();
+}
+
+function fnrClearState() {
+  fnrMatches = [];
+  fnrCurrent = -1;
+  document.getElementById('fnr-count').textContent = '—';
+  document.getElementById('fnr-count').classList.remove('no-match');
+}
+
+// Build all match positions for current search term
+function fnrBuildMatches() {
+  const ta    = document.getElementById('fv-textarea');
+  const query = document.getElementById('fnr-find').value;
+  const caseSensitive = document.getElementById('fnr-case').checked;
+
+  fnrMatches = [];
+  if (!query) { fnrClearState(); return; }
+
+  const text   = ta.value;
+  const needle = caseSensitive ? query : query.toLowerCase();
+  const hay    = caseSensitive ? text  : text.toLowerCase();
+
+  let pos = 0;
+  while (pos < hay.length) {
+    const idx = hay.indexOf(needle, pos);
+    if (idx === -1) break;
+    fnrMatches.push({ start: idx, end: idx + needle.length });
+    pos = idx + 1;
+  }
+
+  const countEl = document.getElementById('fnr-count');
+  if (fnrMatches.length === 0) {
+    countEl.textContent = '0';
+    countEl.classList.add('no-match');
+    fnrCurrent = -1;
+  } else {
+    countEl.classList.remove('no-match');
+    // Keep current index in range or reset
+    if (fnrCurrent >= fnrMatches.length) fnrCurrent = fnrMatches.length - 1;
+    if (fnrCurrent < 0) fnrCurrent = 0;
+    countEl.textContent = `${fnrCurrent + 1}/${fnrMatches.length}`;
+    fnrScrollToCurrent();
+  }
+}
+
+function fnrOnInput() {
+  fnrCurrent = -1;
+  fnrBuildMatches();
+}
+
+function fnrScrollToCurrent() {
+  if (fnrMatches.length === 0) return;
+  const ta  = document.getElementById('fv-textarea');
+  const m   = fnrMatches[fnrCurrent];
+
+  // Select the match so it's visible
+  ta.focus();
+  ta.setSelectionRange(m.start, m.end);
+
+  // Scroll textarea to show selection
+  const lineHeight = parseFloat(getComputedStyle(ta).lineHeight) || 20;
+  const linesBefore = ta.value.substring(0, m.start).split('\n').length - 1;
+  ta.scrollTop = Math.max(0, (linesBefore - 3) * lineHeight);
+
+  // Update counter
+  document.getElementById('fnr-count').textContent = `${fnrCurrent + 1}/${fnrMatches.length}`;
+}
+
+function fnrNext() {
+  if (!fnrMatches.length) { fnrBuildMatches(); return; }
+  fnrCurrent = (fnrCurrent + 1) % fnrMatches.length;
+  fnrScrollToCurrent();
+}
+
+function fnrPrev() {
+  if (!fnrMatches.length) { fnrBuildMatches(); return; }
+  fnrCurrent = (fnrCurrent - 1 + fnrMatches.length) % fnrMatches.length;
+  fnrScrollToCurrent();
+}
+
+function fnrReplaceOne() {
+  if (!fnrMatches.length) { toast('Nothing to replace', 'bad'); return; }
+  const ta      = document.getElementById('fv-textarea');
+  const replStr = document.getElementById('fnr-replace').value;
+  const m       = fnrMatches[fnrCurrent];
+  const before  = ta.value.substring(0, m.start);
+  const after   = ta.value.substring(m.end);
+  ta.value      = before + replStr + after;
+  updateLineCount(ta.value);
+  // Rebuild matches after replacement
+  fnrBuildMatches();
+  toast(`Replaced 1 match`, 'ok');
+}
+
+function fnrReplaceAll() {
+  const query   = document.getElementById('fnr-find').value;
+  const replStr = document.getElementById('fnr-replace').value;
+  const caseSensitive = document.getElementById('fnr-case').checked;
+  if (!query) { toast('Enter a search term', 'bad'); return; }
+
+  const ta   = document.getElementById('fv-textarea');
+  const text = ta.value;
+
+  let count = 0;
+  let result;
+
+  if (caseSensitive) {
+    // Manual replace all (no regex edge cases)
+    let out = '';
+    let pos  = 0;
+    while (pos < text.length) {
+      const idx = text.indexOf(query, pos);
+      if (idx === -1) { out += text.substring(pos); break; }
+      out += text.substring(pos, idx) + replStr;
+      pos  = idx + query.length;
+      count++;
+    }
+    result = out;
+  } else {
+    // Case-insensitive
+    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    result = text.replace(new RegExp(escaped, 'gi'), () => { count++; return replStr; });
+  }
+
+  if (count === 0) { toast('No matches found', 'bad'); return; }
+  ta.value = result;
+  updateLineCount(result);
+  fnrClearState();
+  toast(`✓ Replaced ${count} match${count > 1 ? 'es' : ''}`, 'ok');
+}
+
+// Keyboard: Enter = next, Escape = close while in F&R inputs
+document.getElementById('fnr-find').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); fnrNext(); }
+  if (e.key === 'Escape') { e.preventDefault(); closeFnR(); }
+});
+document.getElementById('fnr-replace').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); fnrReplaceOne(); }
+  if (e.key === 'Escape') { e.preventDefault(); closeFnR(); }
+});
+
 // ── PWA SETUP ─────────────────────────────────────────────────────────────
 (function setupPWA() {
-  // Inline SVG icon as data URI
   const iconSvg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='110' fill='%23080810'/><rect width='512' height='512' rx='110' fill='url(%23g)'/><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23FF78AC' stop-opacity='.18'/><stop offset='1' stop-color='%23080810' stop-opacity='0'/></linearGradient></defs><path d='M290 80L170 290h100l-22 142L440 220H330l22-140z' fill='%23FF78AC'/></svg>`;
   const iconUrl = `data:image/svg+xml,${iconSvg}`;
-
   const manifest = {
     name: 'Octave Deploy',
     short_name: 'Deploy',
@@ -1230,7 +1482,6 @@ function toast(msg, type = '') {
       { src: iconUrl, sizes: '512x512', type: 'image/svg+xml' }
     ]
   };
-
   try {
     const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
     document.getElementById('pwa-manifest').href = URL.createObjectURL(blob);
