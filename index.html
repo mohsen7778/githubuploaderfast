@@ -67,7 +67,7 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
 .section-label{padding:14px 16px 6px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1.8px;color:var(--dim)}
 .tree-wrap{padding:0 10px}
 
-/* FILE ROWS — bigger for easy tapping & swiping */
+/* FILE ROWS */
 .t-item{display:flex;align-items:center;gap:10px;padding:12px 12px;border-radius:12px;cursor:pointer;min-height:52px;transition:background 0.12s;user-select:none;position:relative;overflow:hidden}
 .t-item:active{background:rgba(255,120,172,0.06)}
 .t-icon{font-size:16px;width:20px;flex-shrink:0;text-align:center}
@@ -92,7 +92,7 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
 .pc-ring-wrap svg circle{fill:none;stroke:var(--pink);stroke-width:2;stroke-dasharray:62.8;stroke-dashoffset:62.8;stroke-linecap:round;transition:stroke-dashoffset 0.05s linear}
 .pc-ring-wrap .t-icon-inner{font-size:16px;text-align:center;line-height:1}
 
-/* PC BUBBLE — bottom of screen */
+/* PC BUBBLE */
 #pc-overlay{position:fixed;inset:0;z-index:900;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
 .pc-bubble{background:var(--s2);border:1.5px solid rgba(255,120,172,0.35);border-radius:18px;padding:14px 22px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,0.6);transform:translateY(20px);opacity:0;transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1),opacity 0.18s;max-width:calc(100vw - 28px);width:100%}
 .pc-bubble.show{transform:translateY(0);opacity:1}
@@ -140,7 +140,7 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
 .btn-paste:active{background:rgba(94,255,200,0.15)!important}
 .btn-cancel{background:var(--s3);border:1.5px solid var(--border);color:var(--dim);font-family:var(--display);font-size:14px;font-weight:700}
 
-/* FAB — floats above action bar */
+/* FAB */
 #fab{position:fixed;right:18px;width:52px;height:52px;background:var(--pink);border:none;border-radius:16px;font-size:26px;color:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(255,120,172,0.45);z-index:60;line-height:1;transition:transform 0.2s,box-shadow 0.2s,bottom 0.2s}
 #fab:active{transform:scale(0.9);box-shadow:0 3px 12px rgba(255,120,172,0.3)}
 #fab.hidden{display:none}
@@ -165,12 +165,11 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
 .mode-btn.on{border-color:var(--pink);background:rgba(255,120,172,0.08);color:var(--pink)}
 .clip-preview{width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:12px;padding:12px 14px;font-family:var(--mono);font-size:11px;line-height:1.6;color:var(--teal);max-height:120px;overflow:hidden;text-overflow:ellipsis;word-break:break-all;white-space:pre-wrap}
 
-/* FIND & REPLACE — find input is now a textarea for multiline */
+/* FIND & REPLACE */
 #fnr-panel{position:fixed;bottom:0;left:0;right:0;z-index:80;background:var(--s1);border-top:1px solid rgba(255,209,102,0.25);padding:10px 14px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);box-shadow:0 -8px 32px rgba(0,0,0,0.4)}
 #fnr-panel.open{transform:translateY(0)}
 .fnr-row{display:flex;align-items:flex-start;gap:7px;margin-bottom:7px}
 .fnr-row:last-child{margin-bottom:0}
-/* Multi-line find textarea */
 .fnr-textarea{flex:1;background:var(--s3);border:1.5px solid var(--border);border-radius:10px;padding:9px 11px;font-family:var(--mono);font-size:12px;line-height:1.5;color:var(--cream);outline:none;min-width:0;resize:none;height:56px;transition:border-color 0.2s}
 .fnr-textarea:focus{border-color:rgba(255,209,102,0.5)}
 .fnr-textarea::placeholder{color:var(--dim);font-family:var(--sans);font-size:12px}
@@ -240,7 +239,7 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
 
   <div id="content">
     <div class="view" id="tree-view">
-      <div class="section-label">TAP = open &nbsp;&#xB7;&nbsp; DOUBLE TAP = append &nbsp;&#xB7;&nbsp; HOLD = replace &nbsp;&#xB7;&nbsp; SWIPE LEFT = swap &nbsp;&#xB7;&nbsp; SWIPE RIGHT = revert</div>
+      <div class="section-label">TAP = open &nbsp;&#xB7;&nbsp; DOUBLE TAP = append &nbsp;&#xB7;&nbsp; HOLD/SWIPE = paste</div>
       <div class="tree-wrap" id="tree-wrap">
         <div class="tree-loading">
           <div style="color:var(--dim)">Set a repo above to browse files</div>
@@ -302,7 +301,7 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
   </div>
 </div>
 
-<!-- FIND AND REPLACE PANEL — find is now a textarea for multiline support -->
+<!-- FIND AND REPLACE PANEL -->
 <div id="fnr-panel">
   <div class="fnr-row">
     <span class="fnr-label" style="margin-top:6px">Find</span>
@@ -372,20 +371,6 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
   </div>
 </div>
 
-<!-- SWAP COMMIT SHEET (left swipe) -->
-<div class="sheet-bg hidden" id="swap-sheet-bg">
-  <div class="sheet" onclick="event.stopPropagation()">
-    <div class="sheet-drag"></div>
-    <div class="sheet-title">SwapCommit</div>
-    <div class="sheet-subtitle" id="swap-file-label"></div>
-    <div class="f-label">Old code to find and remove</div>
-    <textarea class="f-textarea" id="swap-old" placeholder="Paste the old code you want to replace..."></textarea>
-    <div class="f-label">New code (from clipboard)</div>
-    <div class="clip-preview" id="swap-clip-preview">Reading clipboard...</div>
-    <button class="btn-pink" style="margin-top:20px;width:100%" id="swap-btn" onclick="submitSwapCommit()">Swap &amp; Commit</button>
-  </div>
-</div>
-
 <!-- PC BUBBLE OVERLAY -->
 <div id="pc-overlay">
   <div class="pc-bubble" id="pc-bubble">
@@ -410,7 +395,7 @@ var curSha  = null;
 var upMode  = 'overwrite';
 
 // FNR state
-var fnrMatches = [];
+var fnrMatches =[];
 var fnrCurrent = -1;
 var fnrOpen    = false;
 
@@ -420,10 +405,6 @@ var PC_STEPS     = 60;
 var DBL_TAP_MS   = 300;
 var SWIPE_THRESH = 55;
 
-// Swap state
-var swapPath = '';
-var swapName = '';
-var swapClip = '';
 var _pcHideTimer = null;
 
 // ── INIT ──────────────────────────────────────────────────────────────────
@@ -495,7 +476,7 @@ async function loadTree() {
   wrap.innerHTML = '<div class="tree-loading"><div class="spin"></div><div>Loading files...</div></div>';
   try {
     var data = await api({ action: 'tree' });
-    buildTree(data.tree || [], wrap);
+    buildTree(data.tree ||[], wrap);
   } catch(e) {
     wrap.innerHTML = '<div class="tree-loading" style="color:var(--error)">Error: ' + e.message + '</div>';
   }
@@ -531,9 +512,9 @@ function renderLevel(obj, el) {
     var ext   = name.split('.').pop().toLowerCase();
     var row   = document.createElement('div');
     row.className = 't-item' + (isDir ? ' is-folder' : '');
-    // Swipe hint strips
-    row.innerHTML = '<span class="swipe-hint-l">SWAP</span>'
-      + '<span class="swipe-hint-r">REVERT</span>'
+    // Swipe hint strips (both set to Paste as both gestures now paste)
+    row.innerHTML = '<span class="swipe-hint-l">PASTE</span>'
+      + '<span class="swipe-hint-r">PASTE</span>'
       + '<span class="t-icon">' + fileIconHtml(ext, isDir) + '</span>'
       + '<span class="t-name">' + name + '</span>'
       + (isDir ? '<span class="t-chevron">&#x203A;</span>' : '');
@@ -605,7 +586,7 @@ function attachGestures(row, path, name) {
         clearInterval(pressTimer); pressTimer = null;
         didLongPress = true;
         restoreRow(row);
-        triggerPressCommit(path, name);
+        triggerPasteCommit(path, name);
       }
     }, PC_HOLD_MS / PC_STEPS);
   }
@@ -624,10 +605,15 @@ function attachGestures(row, path, name) {
     if (Math.abs(dx) > 14 && Math.abs(dx) > Math.abs(dy) * 0.7) {
       didSwipe = true;
       swipeDir = dx < 0 ? -1 : 1;
-      // Show hint strip
+      
+      // Calculate visual pull intensity
       var prog = Math.min(Math.abs(dx) / 120, 1);
-      if (dx < 0 && hintL) hintL.style.width = (prog * 80) + 'px';
-      if (dx > 0 && hintR) hintR.style.width = (prog * 80) + 'px';
+      
+      // Right swipe (finger moving right): reveals the left edge 
+      if (dx > 0 && hintL) hintL.style.width = (prog * 80) + 'px';
+      
+      // Left swipe (finger moving left): reveals the right edge 
+      if (dx < 0 && hintR) hintR.style.width = (prog * 80) + 'px';
     }
   }
 
@@ -640,8 +626,8 @@ function attachGestures(row, path, name) {
     var dy = e.changedTouches[0].clientY - startY;
     var dt = Date.now() - startTime;
     if (didSwipe && dt < 700 && Math.abs(dx) >= SWIPE_THRESH && Math.abs(dx) > Math.abs(dy) * 0.9) {
-      if (dx < 0) openSwapSheet(path, name);
-      else triggerRevertCommit(path, name);
+      // Both Left and Right swipe trigger Paste Commit now
+      triggerPasteCommit(path, name);
       return;
     }
   }
@@ -697,7 +683,7 @@ async function openFile(path, name) {
   document.getElementById('fnr-toggle-btn').style.display = 'none';
   showBar('none');
 
-  var binExts = ['png','jpg','jpeg','gif','ico','woff','woff2','ttf','mp3','mp4','zip','pdf'];
+  var binExts =['png','jpg','jpeg','gif','ico','woff','woff2','ttf','mp3','mp4','zip','pdf'];
   if (binExts.indexOf(name.split('.').pop().toLowerCase()) !== -1) {
     document.getElementById('fv-loading').classList.add('hidden');
     document.getElementById('fv-code').textContent = '[Binary file - preview not available]';
@@ -888,7 +874,6 @@ function b64Decode(b64) {
   } catch(e) { return ''; }
 }
 
-// Normalize line endings to \n
 function normNL(s) { return s.replace(/\r\n/g, '\n').replace(/\r/g, '\n'); }
 
 var _tt;
@@ -928,7 +913,7 @@ function closeFnR() {
 }
 
 function fnrClearState() {
-  fnrMatches = []; fnrCurrent = -1;
+  fnrMatches =[]; fnrCurrent = -1;
   document.getElementById('fnr-count').textContent = '--';
   document.getElementById('fnr-count').classList.remove('no-match');
 }
@@ -937,9 +922,8 @@ function fnrBuildMatches() {
   var ta            = document.getElementById('fv-textarea');
   var rawQuery      = document.getElementById('fnr-find').value;
   var caseSensitive = document.getElementById('fnr-case').checked;
-  fnrMatches = [];
+  fnrMatches =[];
   if (!rawQuery) { fnrClearState(); return; }
-  // Normalize newlines in both search query and file content
   var text   = normNL(ta.value);
   var query  = normNL(rawQuery);
   var needle = caseSensitive ? query  : query.toLowerCase();
@@ -1060,14 +1044,6 @@ function hidePcBubbleAfter(ms) {
   }, ms);
 }
 
-// Store content for revert
-function storeRevert(path, content) {
-  try { localStorage.setItem('rv_' + path.replace(/[^a-z0-9]/gi, '_'), content); } catch(e) {}
-}
-function getRevert(path) {
-  try { return localStorage.getItem('rv_' + path.replace(/[^a-z0-9]/gi, '_')); } catch(e) { return null; }
-}
-
 // ── APPEND COMMIT (double-tap) ────────────────────────────────────────────
 async function triggerAppendCommit(path, name) {
   if (navigator.vibrate) navigator.vibrate([20, 30, 20]);
@@ -1083,7 +1059,7 @@ async function triggerAppendCommit(path, name) {
     sha      = d.sha;
     existing = b64Decode(d.content);
   } catch(e) { showPcBubble('Fetch failed', e.message, 'error'); hidePcBubbleAfter(2800); return; }
-  storeRevert(path, existing);
+  
   showPcBubble('Appending...', path, '');
   var sep      = existing.endsWith('\n') ? '' : '\n';
   var newText  = existing + sep + clipText;
@@ -1096,126 +1072,30 @@ async function triggerAppendCommit(path, name) {
   hidePcBubbleAfter(2200);
 }
 
-// ── PRESS COMMIT (long press) ─────────────────────────────────────────────
-async function triggerPressCommit(path, name) {
+// ── PASTE COMMIT (long press / swipe) ─────────────────────────────────────
+async function triggerPasteCommit(path, name) {
   if (navigator.vibrate) navigator.vibrate([30, 40, 60]);
-  showPcBubble('PressCommit', path, '');
+  showPcBubble('PasteCommit', path, '');
   var clipText;
   try { clipText = await navigator.clipboard.readText(); }
   catch(e) { showPcBubble('Clipboard denied', 'Allow clipboard access', 'error'); hidePcBubbleAfter(2800); return; }
   if (!clipText || !clipText.trim()) { showPcBubble('Clipboard empty', 'Copy some code first', 'error'); hidePcBubbleAfter(2400); return; }
+  
   showPcBubble('Fetching...', path, '');
-  var sha, oldContent;
-  try {
-    var d      = await api({ action: 'get', path: path });
-    sha        = d.sha;
-    oldContent = b64Decode(d.content);
-  } catch(e) { showPcBubble('Fetch failed', e.message, 'error'); hidePcBubbleAfter(2800); return; }
-  storeRevert(path, oldContent);
-  showPcBubble('Committing...', path, '');
-  var lc  = clipText.split('\n').length;
-  var msg = 'PressCommit: update ' + name + ' ' + lc + ' line' + (lc !== 1 ? 's' : '');
-  try { await api({ action: 'upload', path: path, content: clipText, message: msg, sha: sha }); }
-  catch(e) { showPcBubble('Commit failed', e.message, 'error'); hidePcBubbleAfter(2800); return; }
-  if (navigator.vibrate) navigator.vibrate([40, 30, 40, 30, 80]);
-  showPcBubble('Committed!', msg, 'success');
-  hidePcBubbleAfter(2200);
-}
-
-// ── SWAP COMMIT (left swipe) ──────────────────────────────────────────────
-async function openSwapSheet(path, name) {
-  swapPath = path; swapName = name; swapClip = '';
-  document.getElementById('swap-file-label').textContent = path;
-  document.getElementById('swap-old').value = '';
-  var prev = document.getElementById('swap-clip-preview');
-  prev.textContent = 'Reading clipboard...';
-  document.getElementById('swap-sheet-bg').classList.remove('hidden');
-  try {
-    swapClip = await navigator.clipboard.readText();
-    if (swapClip) {
-      var lines = swapClip.split('\n');
-      var preview = lines.slice(0, 5).join('\n') + (lines.length > 5 ? '\n...' : '');
-      prev.textContent = preview;
-    } else {
-      prev.textContent = '(clipboard is empty)';
-    }
-  } catch(e) {
-    prev.textContent = '(clipboard access denied)';
-  }
-}
-
-async function submitSwapCommit() {
-  var oldCode = document.getElementById('swap-old').value;
-  if (!oldCode.trim()) { toast('Paste old code to replace', 'bad'); return; }
-  if (!swapClip || !swapClip.trim()) { toast('Clipboard is empty', 'bad'); return; }
-  var btn = document.getElementById('swap-btn');
-  btn.textContent = 'Swapping...'; btn.disabled = true;
-  showPcBubble('SwapCommit', swapPath, '');
-  closeSheet('swap-sheet-bg');
-  var sha, fileText;
-  try {
-    var d    = await api({ action: 'get', path: swapPath });
-    sha      = d.sha;
-    fileText = b64Decode(d.content);
-  } catch(e) {
-    showPcBubble('Fetch failed', e.message, 'error'); hidePcBubbleAfter(2800);
-    btn.textContent = 'Swap & Commit'; btn.disabled = false; return;
-  }
-  var normFile = normNL(fileText);
-  var normOld  = normNL(oldCode);
-  var normNew  = normNL(swapClip);
-  if (normFile.indexOf(normOld) === -1) {
-    showPcBubble('Not found', 'Old code was not found in ' + swapName, 'error');
-    hidePcBubbleAfter(3000);
-    btn.textContent = 'Swap & Commit'; btn.disabled = false; return;
-  }
-  storeRevert(swapPath, fileText);
-  var count   = 0;
-  var result  = normFile.split(normOld).join(function() { count++; return normNew; });
-  // simple replace all
-  result = '';
-  var pos = 0;
-  while (pos < normFile.length) {
-    var idx2 = normFile.indexOf(normOld, pos);
-    if (idx2 === -1) { result += normFile.substring(pos); break; }
-    result += normFile.substring(pos, idx2) + normNew;
-    pos = idx2 + normOld.length;
-    count++;
-  }
-  var lc  = normNew.split('\n').length;
-  var msg = 'SwapCommit: swap in ' + swapName + ' (' + count + ' occurrence' + (count > 1 ? 's' : '') + ')';
-  try { await api({ action: 'upload', path: swapPath, content: result, message: msg, sha: sha }); }
-  catch(e) {
-    showPcBubble('Commit failed', e.message, 'error'); hidePcBubbleAfter(2800);
-    btn.textContent = 'Swap & Commit'; btn.disabled = false; return;
-  }
-  if (navigator.vibrate) navigator.vibrate([30, 20, 60]);
-  showPcBubble('Swapped!', msg, 'success');
-  hidePcBubbleAfter(2200);
-  btn.textContent = 'Swap & Commit'; btn.disabled = false;
-}
-
-// ── REVERT COMMIT (right swipe) ───────────────────────────────────────────
-async function triggerRevertCommit(path, name) {
-  if (navigator.vibrate) navigator.vibrate([15, 25, 15]);
-  var prev = getRevert(path);
-  if (!prev) {
-    showPcBubble('No revert data', 'Use PressCommit/AppendCommit/SwapCommit first', 'warn');
-    hidePcBubbleAfter(3000); return;
-  }
-  showPcBubble('Reverting...', path, '');
   var sha;
   try {
     var d = await api({ action: 'get', path: path });
     sha   = d.sha;
   } catch(e) { showPcBubble('Fetch failed', e.message, 'error'); hidePcBubbleAfter(2800); return; }
-  var msg = 'RevertCommit: revert ' + name + ' to previous version';
-  try { await api({ action: 'upload', path: path, content: prev, message: msg, sha: sha }); }
-  catch(e) { showPcBubble('Revert failed', e.message, 'error'); hidePcBubbleAfter(2800); return; }
-  // Clear revert data after using it
-  try { localStorage.removeItem('rv_' + path.replace(/[^a-z0-9]/gi, '_')); } catch(e2) {}
-  if (navigator.vibrate) navigator.vibrate([20, 15, 20, 15, 40]);
-  showPcBubble('Reverted!', msg, 'success');
+  
+  showPcBubble('Committing...', path, '');
+  var lc  = clipText.split('\n').length;
+  var msg = 'PasteCommit: replace ' + name + ' with ' + lc + ' line' + (lc !== 1 ? 's' : '');
+  try { await api({ action: 'upload', path: path, content: clipText, message: msg, sha: sha }); }
+  catch(e) { showPcBubble('Commit failed', e.message, 'error'); hidePcBubbleAfter(2800); return; }
+  
+  if (navigator.vibrate) navigator.vibrate([40, 30, 40, 30, 80]);
+  showPcBubble('Pasted!', msg, 'success');
   hidePcBubbleAfter(2200);
 }
 
