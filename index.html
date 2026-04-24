@@ -49,11 +49,11 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
 #app{height:100dvh;display:flex;flex-direction:column;overflow:hidden}
 .topbar{background:var(--s1);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;min-height:56px}
 .topbar-wordmark{font-family:var(--display);font-size:16px;font-weight:800;color:var(--pink);flex-shrink:0;letter-spacing:-0.3px}
-.repo-pill{flex:1;min-width:0;background:var(--s3);border:1px solid var(--border2);border-radius:12px;padding:8px 12px;display:flex;align-items:center;gap:7px;cursor:pointer;transition:border-color 0.15s;overflow:hidden}
+.repo-pill{flex:1;min-width:0;background:var(--s3);border:1px solid var(--border2);border-radius:12px;padding:8px 12px;display:flex;align-items:center;gap:7px;cursor:pointer;overflow:hidden}
 .repo-pill:active{border-color:rgba(168,213,227,0.3)}
 .repo-pill .rp-icon{font-size:13px;flex-shrink:0}
 .repo-pill .rp-text{font-family:var(--mono);font-size:12px;color:var(--teal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;font-weight:500}
-.top-icon-btn{width:36px;height:36px;background:var(--s3);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:15px;color:var(--dim);transition:color 0.15s,border-color 0.15s}
+.top-icon-btn{width:36px;height:36px;background:var(--s3);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:var(--dim);transition:color 0.15s,border-color 0.15s}
 .top-icon-btn:active{color:var(--cream)}
 
 /* CONTENT */
@@ -63,44 +63,54 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
 .view.slide-left{transform:translateX(-30px);opacity:0;pointer-events:none}
 
 /* TREE */
-#tree-view{padding-bottom:90px}
-.section-label{padding:18px 16px 8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:2px;color:var(--dim)}
-.tree-wrap{padding:0 8px}
-.t-item{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:10px;cursor:pointer;min-height:42px;transition:background 0.12s;user-select:none}
+#tree-view{padding-bottom:100px}
+.section-label{padding:14px 16px 6px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1.8px;color:var(--dim)}
+.tree-wrap{padding:0 10px}
+
+/* FILE ROWS — bigger for easy tapping & swiping */
+.t-item{display:flex;align-items:center;gap:10px;padding:12px 12px;border-radius:12px;cursor:pointer;min-height:52px;transition:background 0.12s;user-select:none;position:relative;overflow:hidden}
 .t-item:active{background:rgba(255,120,172,0.06)}
-.t-icon{font-size:14px;width:18px;flex-shrink:0;text-align:center}
-.t-name{flex:1;font-size:13.5px;font-family:var(--mono);font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--cream)}
+.t-icon{font-size:16px;width:20px;flex-shrink:0;text-align:center}
+.t-name{flex:1;font-size:15.5px;font-family:var(--mono);font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--cream)}
 .t-item.is-folder .t-name{color:var(--teal);font-weight:500}
-.t-chevron{font-size:10px;color:var(--dim);transition:transform 0.2s;flex-shrink:0}
+.t-chevron{font-size:11px;color:var(--dim);transition:transform 0.2s;flex-shrink:0}
 .t-item.open .t-chevron{transform:rotate(90deg)}
-.t-children{padding-left:22px;display:none}
+.t-children{padding-left:24px;display:none}
 .t-children.open{display:block}
+
+/* SWIPE HINT STRIP */
+.t-item .swipe-hint-l{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(255,209,102,0.12);transition:width 0.1s;border-radius:12px 0 0 12px;display:flex;align-items:center;padding-left:8px;overflow:hidden;font-size:11px;color:var(--warn);font-family:var(--display);font-weight:700;white-space:nowrap}
+.t-item .swipe-hint-r{position:absolute;right:0;top:0;bottom:0;width:0;background:rgba(94,255,200,0.1);transition:width 0.1s;border-radius:0 12px 12px 0;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;overflow:hidden;font-size:11px;color:var(--success);font-family:var(--display);font-weight:700;white-space:nowrap}
+
 .tree-loading{padding:60px 20px;text-align:center;color:var(--dim);font-size:13px;display:flex;flex-direction:column;align-items:center;gap:12px}
 
 /* PRESS COMMIT RING */
 .t-item.pc-pressing{background:rgba(255,120,172,0.08)}
 .t-item.pc-pressing .t-name{color:var(--pink)}
-.pc-ring-wrap{position:relative;width:18px;height:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.pc-ring-wrap svg{position:absolute;inset:-4px;width:26px;height:26px;transform:rotate(-90deg);pointer-events:none}
+.pc-ring-wrap{position:relative;width:20px;height:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.pc-ring-wrap svg{position:absolute;inset:-4px;width:28px;height:28px;transform:rotate(-90deg);pointer-events:none}
 .pc-ring-wrap svg circle{fill:none;stroke:var(--pink);stroke-width:2;stroke-dasharray:62.8;stroke-dashoffset:62.8;stroke-linecap:round;transition:stroke-dashoffset 0.05s linear}
-.pc-ring-wrap .t-icon-inner{font-size:14px;text-align:center;line-height:1}
+.pc-ring-wrap .t-icon-inner{font-size:16px;text-align:center;line-height:1}
 
-/* PC BUBBLE */
-#pc-overlay{position:fixed;inset:0;z-index:900;display:flex;align-items:center;justify-content:center;pointer-events:none}
-.pc-bubble{background:var(--s2);border:1.5px solid rgba(255,120,172,0.35);border-radius:20px;padding:20px 28px;display:flex;flex-direction:column;align-items:center;gap:10px;box-shadow:0 16px 48px rgba(0,0,0,0.6);transform:scale(0.8);opacity:0;transition:transform 0.22s cubic-bezier(0.34,1.56,0.64,1),opacity 0.18s;max-width:280px;text-align:center}
-.pc-bubble.show{transform:scale(1);opacity:1}
-.pc-bubble-icon{font-size:32px;line-height:1}
-.pc-bubble-title{font-family:var(--display);font-size:16px;font-weight:800;color:var(--cream);letter-spacing:-0.3px}
-.pc-bubble-sub{font-size:12px;color:var(--dim);font-family:var(--mono);word-break:break-all}
+/* PC BUBBLE — bottom of screen */
+#pc-overlay{position:fixed;inset:0;z-index:900;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+.pc-bubble{background:var(--s2);border:1.5px solid rgba(255,120,172,0.35);border-radius:18px;padding:14px 22px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,0.6);transform:translateY(20px);opacity:0;transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1),opacity 0.18s;max-width:calc(100vw - 28px);width:100%}
+.pc-bubble.show{transform:translateY(0);opacity:1}
+.pc-bubble-icon{font-size:22px;line-height:1;flex-shrink:0}
+.pc-bubble-body{flex:1;min-width:0}
+.pc-bubble-title{font-family:var(--display);font-size:14px;font-weight:800;color:var(--cream);letter-spacing:-0.2px}
+.pc-bubble-sub{font-size:11px;color:var(--dim);font-family:var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
 .pc-bubble.success{border-color:rgba(94,255,200,0.4)}
 .pc-bubble.success .pc-bubble-title{color:var(--success)}
 .pc-bubble.error{border-color:rgba(255,92,122,0.4)}
 .pc-bubble.error .pc-bubble-title{color:var(--error)}
+.pc-bubble.warn{border-color:rgba(255,209,102,0.4)}
+.pc-bubble.warn .pc-bubble-title{color:var(--warn)}
 
 /* FILE VIEW */
-#file-view{padding-bottom:120px}
+#file-view{padding-bottom:160px}
 .fv-header{background:var(--s1);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
-.back-btn{background:var(--s3);border:1px solid var(--border);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;flex-shrink:0;color:var(--pink);transition:background 0.15s}
+.back-btn{background:var(--s3);border:1px solid var(--border);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;flex-shrink:0;color:var(--pink)}
 .back-btn:active{background:rgba(255,120,172,0.1)}
 .fv-meta{flex:1;min-width:0}
 .fv-name{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--cream);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -119,9 +129,9 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
 .action-bar.hidden{display:none}
 #bar-edit{flex-direction:column;gap:7px}
 .bar-row{display:flex;gap:8px;width:100%}
-.btn-ghost{flex:1;background:var(--s3);border:1.5px solid var(--border2);border-radius:13px;padding:14px 10px;font-family:var(--display);font-size:14px;font-weight:700;color:var(--teal);cursor:pointer;transition:background 0.15s,transform 0.1s;text-align:center;letter-spacing:-0.2px}
+.btn-ghost{flex:1;background:var(--s3);border:1.5px solid var(--border2);border-radius:13px;padding:14px 10px;font-family:var(--display);font-size:14px;font-weight:700;color:var(--teal);cursor:pointer;text-align:center;letter-spacing:-0.2px;transition:background 0.15s,transform 0.1s}
 .btn-ghost:active{background:rgba(168,213,227,0.08);transform:scale(0.97)}
-.btn-hot{flex:1.5;background:var(--pink);border:none;border-radius:13px;padding:14px 10px;font-family:var(--display);font-size:14px;font-weight:800;color:var(--bg);cursor:pointer;transition:opacity 0.15s,transform 0.1s;text-align:center;letter-spacing:-0.2px;box-shadow:0 4px 18px rgba(255,120,172,0.35)}
+.btn-hot{flex:1.5;background:var(--pink);border:none;border-radius:13px;padding:14px 10px;font-family:var(--display);font-size:14px;font-weight:800;color:var(--bg);cursor:pointer;text-align:center;letter-spacing:-0.2px;box-shadow:0 4px 18px rgba(255,120,172,0.35);transition:opacity 0.15s,transform 0.1s}
 .btn-hot:active{opacity:0.8;transform:scale(0.97)}
 .btn-hot:disabled{opacity:0.3;cursor:not-allowed;transform:none;box-shadow:none}
 .btn-cut{background:rgba(255,92,122,0.1);border:1.5px solid rgba(255,92,122,0.28);color:#FF7090}
@@ -130,8 +140,8 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
 .btn-paste:active{background:rgba(94,255,200,0.15)!important}
 .btn-cancel{background:var(--s3);border:1.5px solid var(--border);color:var(--dim);font-family:var(--display);font-size:14px;font-weight:700}
 
-/* FAB */
-#fab{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom,0px));right:18px;width:54px;height:54px;background:var(--pink);border:none;border-radius:17px;font-size:26px;font-weight:300;color:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(255,120,172,0.45);z-index:60;transition:transform 0.2s,box-shadow 0.2s;line-height:1}
+/* FAB — floats above action bar */
+#fab{position:fixed;right:18px;width:52px;height:52px;background:var(--pink);border:none;border-radius:16px;font-size:26px;color:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(255,120,172,0.45);z-index:60;line-height:1;transition:transform 0.2s,box-shadow 0.2s,bottom 0.2s}
 #fab:active{transform:scale(0.9);box-shadow:0 3px 12px rgba(255,120,172,0.3)}
 #fab.hidden{display:none}
 
@@ -141,36 +151,40 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
 .sheet{background:var(--s1);border-radius:22px 22px 0 0;border-top:1px solid var(--border);padding:16px 20px 28px;padding-bottom:calc(28px + env(safe-area-inset-bottom,0px));max-height:92dvh;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .sheet-drag{width:38px;height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin:0 auto 20px}
 .sheet-title{font-family:var(--display);font-size:20px;font-weight:800;color:var(--cream);margin-bottom:20px;letter-spacing:-0.3px}
+.sheet-subtitle{font-size:12px;color:var(--teal);font-family:var(--mono);margin-top:-14px;margin-bottom:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .f-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim);margin-bottom:7px;margin-top:18px}
 .f-label:first-of-type{margin-top:0}
 .f-input{width:100%;background:var(--s3);border:1.5px solid var(--border);border-radius:12px;padding:13px 15px;font-family:var(--mono);font-size:13px;color:var(--cream);outline:none;transition:border-color 0.2s}
 .f-input:focus{border-color:rgba(255,120,172,0.45)}
 .f-input::placeholder{color:var(--dim);font-family:var(--sans);font-size:13px}
-.f-textarea{width:100%;min-height:190px;background:var(--s3);border:1.5px solid var(--border);border-radius:12px;padding:13px 15px;font-family:var(--mono);font-size:11.5px;line-height:1.7;color:var(--cream);resize:vertical;outline:none;transition:border-color 0.2s}
+.f-textarea{width:100%;min-height:160px;background:var(--s3);border:1.5px solid var(--border);border-radius:12px;padding:13px 15px;font-family:var(--mono);font-size:11.5px;line-height:1.7;color:var(--cream);resize:vertical;outline:none;transition:border-color 0.2s}
 .f-textarea:focus{border-color:rgba(255,120,172,0.45)}
 .f-textarea::placeholder{font-family:var(--sans);font-size:13px;color:var(--dim)}
 .mode-row{display:flex;gap:7px;margin-bottom:18px}
-.mode-btn{flex:1;padding:10px 8px;border-radius:11px;border:1.5px solid var(--border);background:var(--s3);color:var(--dim);font-size:13px;font-weight:600;font-family:var(--sans);cursor:pointer;transition:all 0.15s;text-align:center}
+.mode-btn{flex:1;padding:10px 8px;border-radius:11px;border:1.5px solid var(--border);background:var(--s3);color:var(--dim);font-size:13px;font-weight:600;font-family:var(--sans);cursor:pointer;text-align:center;transition:all 0.15s}
 .mode-btn.on{border-color:var(--pink);background:rgba(255,120,172,0.08);color:var(--pink)}
+.clip-preview{width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:12px;padding:12px 14px;font-family:var(--mono);font-size:11px;line-height:1.6;color:var(--teal);max-height:120px;overflow:hidden;text-overflow:ellipsis;word-break:break-all;white-space:pre-wrap}
 
-/* FIND & REPLACE */
-#fnr-panel{position:fixed;bottom:0;left:0;right:0;z-index:80;background:var(--s1);border-top:1px solid rgba(255,209,102,0.25);padding:12px 14px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);box-shadow:0 -8px 32px rgba(0,0,0,0.4)}
+/* FIND & REPLACE — find input is now a textarea for multiline */
+#fnr-panel{position:fixed;bottom:0;left:0;right:0;z-index:80;background:var(--s1);border-top:1px solid rgba(255,209,102,0.25);padding:10px 14px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);box-shadow:0 -8px 32px rgba(0,0,0,0.4)}
 #fnr-panel.open{transform:translateY(0)}
-.fnr-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.fnr-row{display:flex;align-items:flex-start;gap:7px;margin-bottom:7px}
 .fnr-row:last-child{margin-bottom:0}
-.fnr-input{flex:1;background:var(--s3);border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-family:var(--mono);font-size:13px;color:var(--cream);outline:none;min-width:0;transition:border-color 0.2s}
-.fnr-input:focus{border-color:rgba(255,209,102,0.5)}
-.fnr-input::placeholder{color:var(--dim);font-family:var(--sans);font-size:12px}
-.fnr-count{font-family:var(--mono);font-size:11px;color:var(--warn);background:rgba(255,209,102,0.08);border:1px solid rgba(255,209,102,0.2);border-radius:7px;padding:4px 9px;white-space:nowrap;flex-shrink:0;min-width:42px;text-align:center}
+/* Multi-line find textarea */
+.fnr-textarea{flex:1;background:var(--s3);border:1.5px solid var(--border);border-radius:10px;padding:9px 11px;font-family:var(--mono);font-size:12px;line-height:1.5;color:var(--cream);outline:none;min-width:0;resize:none;height:56px;transition:border-color 0.2s}
+.fnr-textarea:focus{border-color:rgba(255,209,102,0.5)}
+.fnr-textarea::placeholder{color:var(--dim);font-family:var(--sans);font-size:12px}
+.fnr-single{height:36px!important;resize:none}
+.fnr-side{display:flex;flex-direction:column;gap:5px;flex-shrink:0}
+.fnr-count{font-family:var(--mono);font-size:11px;color:var(--warn);background:rgba(255,209,102,0.08);border:1px solid rgba(255,209,102,0.2);border-radius:7px;padding:3px 8px;white-space:nowrap;text-align:center;min-width:40px}
 .fnr-count.no-match{color:var(--error);background:rgba(255,92,122,0.08);border-color:rgba(255,92,122,0.2)}
-.fnr-btn{background:var(--s3);border:1.5px solid var(--border2);border-radius:9px;padding:8px 10px;font-size:13px;color:var(--teal);cursor:pointer;font-family:var(--display);font-weight:700;flex-shrink:0;transition:background 0.12s,transform 0.1s;white-space:nowrap}
-.fnr-btn:active{background:rgba(168,213,227,0.1);transform:scale(0.95)}
+.fnr-btn{background:var(--s3);border:1.5px solid var(--border2);border-radius:9px;padding:6px 9px;font-size:12px;color:var(--teal);cursor:pointer;font-family:var(--display);font-weight:700;flex-shrink:0;white-space:nowrap;transition:background 0.12s}
+.fnr-btn:active{background:rgba(168,213,227,0.12)}
 .fnr-btn.warn-btn{color:var(--warn);border-color:rgba(255,209,102,0.22);background:rgba(255,209,102,0.06)}
 .fnr-btn.hot-btn{color:var(--bg);background:var(--pink);border-color:transparent;box-shadow:0 2px 10px rgba(255,120,172,0.3)}
-.fnr-close{background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer;padding:4px 6px;flex-shrink:0;line-height:1;transition:color 0.15s}
-.fnr-close:active{color:var(--cream)}
-.fnr-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim);width:44px;flex-shrink:0}
-.fnr-toggle{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:var(--dim);font-family:var(--sans);user-select:none;flex-shrink:0}
+.fnr-close{background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer;padding:4px;flex-shrink:0;line-height:1}
+.fnr-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim);width:38px;flex-shrink:0;margin-top:10px}
+.fnr-toggle{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;color:var(--dim);font-family:var(--sans);user-select:none;flex-shrink:0;margin-top:8px}
 .fnr-toggle input{display:none}
 .fnr-toggle-dot{width:28px;height:16px;background:var(--s3);border:1.5px solid var(--border);border-radius:8px;position:relative;transition:background 0.2s,border-color 0.2s;flex-shrink:0}
 .fnr-toggle-dot::after{content:'';position:absolute;top:2px;left:2px;width:8px;height:8px;background:var(--dim);border-radius:50%;transition:transform 0.2s,background 0.2s}
@@ -226,7 +240,7 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
 
   <div id="content">
     <div class="view" id="tree-view">
-      <div class="section-label">Files &nbsp;&middot;&nbsp; tap=open &nbsp;&middot;&nbsp; double-tap=append &nbsp;&middot;&nbsp; hold=replace</div>
+      <div class="section-label">TAP = open &nbsp;&#xB7;&nbsp; DOUBLE TAP = append &nbsp;&#xB7;&nbsp; HOLD = replace &nbsp;&#xB7;&nbsp; SWIPE LEFT = swap &nbsp;&#xB7;&nbsp; SWIPE RIGHT = revert</div>
       <div class="tree-wrap" id="tree-wrap">
         <div class="tree-loading">
           <div style="color:var(--dim)">Set a repo above to browse files</div>
@@ -244,10 +258,9 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
             <span class="fv-lines-badge" id="fv-lines"></span>
           </div>
         </div>
-        <div class="top-icon-btn" id="fnr-toggle-btn" onclick="toggleFnR()" title="Find &amp; Replace" style="display:none">
+        <div class="top-icon-btn" id="fnr-toggle-btn" onclick="toggleFnR()" title="Find and Replace" style="display:none">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-            <path d="M11 8v6M8 11h6"/>
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/>
           </svg>
         </div>
         <div class="top-icon-btn" onclick="copyFileContent()" title="Copy">
@@ -260,9 +273,7 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
       <div class="fv-body">
         <div id="fv-loading" class="tree-loading"><div class="spin"></div><div>Loading...</div></div>
         <div id="fv-content" class="hidden">
-          <div id="fv-view">
-            <pre class="code-block" id="fv-code"></pre>
-          </div>
+          <div id="fv-view"><pre class="code-block" id="fv-code"></pre></div>
           <div id="fv-edit" class="hidden">
             <input type="text" class="commit-field" id="fv-msg" placeholder="Commit message">
             <textarea class="edit-area" id="fv-textarea"></textarea>
@@ -291,26 +302,30 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
   </div>
 </div>
 
-<!-- FIND AND REPLACE PANEL -->
+<!-- FIND AND REPLACE PANEL — find is now a textarea for multiline support -->
 <div id="fnr-panel">
   <div class="fnr-row">
-    <span class="fnr-label">Find</span>
-    <input type="text" class="fnr-input" id="fnr-find" placeholder="Search text..." oninput="fnrOnInput()">
-    <span class="fnr-count" id="fnr-count">--</span>
-    <button class="fnr-btn" onclick="fnrPrev()">&#8593;</button>
-    <button class="fnr-btn" onclick="fnrNext()">&#8595;</button>
-    <button class="fnr-close" onclick="closeFnR()">&#215;</button>
+    <span class="fnr-label" style="margin-top:6px">Find</span>
+    <textarea class="fnr-textarea" id="fnr-find" placeholder="Paste any code to search... (multiline OK)" oninput="fnrOnInput()"></textarea>
+    <div class="fnr-side">
+      <span class="fnr-count" id="fnr-count">--</span>
+      <button class="fnr-btn" onclick="fnrPrev()">&#8593;</button>
+      <button class="fnr-btn" onclick="fnrNext()">&#8595;</button>
+      <button class="fnr-close" onclick="closeFnR()">&#215;</button>
+    </div>
   </div>
   <div class="fnr-row">
-    <span class="fnr-label">With</span>
-    <input type="text" class="fnr-input" id="fnr-replace" placeholder="Replace with...">
-    <label class="fnr-toggle" title="Case sensitive">
-      <input type="checkbox" id="fnr-case" onchange="fnrOnInput()">
-      <span class="fnr-toggle-dot"></span>
-      <span>Aa</span>
-    </label>
-    <button class="fnr-btn warn-btn" onclick="fnrReplaceOne()">1x</button>
-    <button class="fnr-btn hot-btn" onclick="fnrReplaceAll()">All</button>
+    <span class="fnr-label" style="margin-top:6px">With</span>
+    <textarea class="fnr-textarea fnr-single" id="fnr-replace" placeholder="Replace with..."></textarea>
+    <div class="fnr-side">
+      <label class="fnr-toggle" title="Case sensitive">
+        <input type="checkbox" id="fnr-case" onchange="fnrOnInput()">
+        <span class="fnr-toggle-dot"></span>
+        <span>Aa</span>
+      </label>
+      <button class="fnr-btn warn-btn" onclick="fnrReplaceOne()">1x</button>
+      <button class="fnr-btn hot-btn" onclick="fnrReplaceAll()">All</button>
+    </div>
   </div>
 </div>
 
@@ -352,17 +367,33 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
     <div class="sheet-drag"></div>
     <div class="sheet-title">Repository</div>
     <div class="f-label">Owner / Repo</div>
-    <input type="text" class="f-input" id="repo-input" placeholder="mohsen7778/octave-music-player">
+    <input type="text" class="f-input" id="repo-input" placeholder="mohsen7778/my-repo">
     <button class="btn-pink" style="margin-top:20px;width:100%" onclick="saveRepo()">Load Repo</button>
   </div>
 </div>
 
-<!-- PRESS COMMIT OVERLAY -->
+<!-- SWAP COMMIT SHEET (left swipe) -->
+<div class="sheet-bg hidden" id="swap-sheet-bg">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-drag"></div>
+    <div class="sheet-title">SwapCommit</div>
+    <div class="sheet-subtitle" id="swap-file-label"></div>
+    <div class="f-label">Old code to find and remove</div>
+    <textarea class="f-textarea" id="swap-old" placeholder="Paste the old code you want to replace..."></textarea>
+    <div class="f-label">New code (from clipboard)</div>
+    <div class="clip-preview" id="swap-clip-preview">Reading clipboard...</div>
+    <button class="btn-pink" style="margin-top:20px;width:100%" id="swap-btn" onclick="submitSwapCommit()">Swap &amp; Commit</button>
+  </div>
+</div>
+
+<!-- PC BUBBLE OVERLAY -->
 <div id="pc-overlay">
   <div class="pc-bubble" id="pc-bubble">
     <div class="pc-bubble-icon" id="pc-bubble-icon">&#x26A1;</div>
-    <div class="pc-bubble-title" id="pc-bubble-title">PressCommit</div>
-    <div class="pc-bubble-sub" id="pc-bubble-sub"></div>
+    <div class="pc-bubble-body">
+      <div class="pc-bubble-title" id="pc-bubble-title">Ready</div>
+      <div class="pc-bubble-sub" id="pc-bubble-sub"></div>
+    </div>
   </div>
 </div>
 
@@ -383,17 +414,21 @@ var fnrMatches = [];
 var fnrCurrent = -1;
 var fnrOpen    = false;
 
-// PressCommit state
-var PC_HOLD_MS  = 650;
-var PC_STEPS    = 60;
-var DBL_TAP_MS  = 320;
-var _pcTimer    = null;
-var _pcStep     = 0;
-var _pcRow      = null;
+// Gesture constants
+var PC_HOLD_MS   = 650;
+var PC_STEPS     = 60;
+var DBL_TAP_MS   = 300;
+var SWIPE_THRESH = 55;
+
+// Swap state
+var swapPath = '';
+var swapName = '';
+var swapClip = '';
 var _pcHideTimer = null;
 
 // ── INIT ──────────────────────────────────────────────────────────────────
 (function init() {
+  positionFab();
   var pw = localStorage.getItem(K_PW);
   if (pw) { bootApp(); return; }
   document.getElementById('auth-pw').addEventListener('keydown', function(e) {
@@ -401,9 +436,16 @@ var _pcHideTimer = null;
   });
 })();
 
+// ── FAB POSITIONING ───────────────────────────────────────────────────────
+function positionFab() {
+  var fab = document.getElementById('fab');
+  // In tree view: no action bar, sit at comfortable bottom position
+  fab.style.bottom = 'calc(28px + env(safe-area-inset-bottom, 0px))';
+}
+
 // ── AUTH ──────────────────────────────────────────────────────────────────
 async function doAuth() {
-  var pw  = document.getElementById('auth-pw').value.trim();
+  var pw = document.getElementById('auth-pw').value.trim();
   if (!pw) return;
   var btn = document.getElementById('auth-btn');
   btn.disabled = true; btn.textContent = 'Checking...';
@@ -416,7 +458,7 @@ async function doAuth() {
     if (r.status === 401) throw new Error('bad');
     localStorage.setItem(K_PW, pw);
     bootApp();
-  } catch(err) {
+  } catch(e) {
     document.getElementById('auth-error').classList.add('show');
     btn.disabled = false; btn.textContent = 'Unlock';
   }
@@ -466,11 +508,7 @@ function buildTree(flat, container) {
     var node  = root;
     parts.forEach(function(p, i) {
       if (!node[p]) {
-        node[p] = {
-          _type: i < parts.length - 1 ? 'tree' : item.type,
-          _path: parts.slice(0, i + 1).join('/'),
-          _kids: {}
-        };
+        node[p] = { _type: i < parts.length - 1 ? 'tree' : item.type, _path: parts.slice(0, i + 1).join('/'), _kids: {} };
       }
       node = node[p]._kids;
     });
@@ -491,10 +529,12 @@ function renderLevel(obj, el) {
     var node  = entry[1];
     var isDir = node._type === 'tree';
     var ext   = name.split('.').pop().toLowerCase();
-    var ico   = isDir ? '&#x1F4C1;' : fileIconHtml(ext);
     var row   = document.createElement('div');
     row.className = 't-item' + (isDir ? ' is-folder' : '');
-    row.innerHTML = '<span class="t-icon">' + ico + '</span>'
+    // Swipe hint strips
+    row.innerHTML = '<span class="swipe-hint-l">SWAP</span>'
+      + '<span class="swipe-hint-r">REVERT</span>'
+      + '<span class="t-icon">' + fileIconHtml(ext, isDir) + '</span>'
       + '<span class="t-name">' + name + '</span>'
       + (isDir ? '<span class="t-chevron">&#x203A;</span>' : '');
     el.appendChild(row);
@@ -509,13 +549,13 @@ function renderLevel(obj, el) {
         row.querySelector('.t-icon').innerHTML = open ? '&#x1F4C2;' : '&#x1F4C1;';
       });
     } else {
-      attachTapHandlers(row, node._path, name);
-      attachPressCommit(row, node._path, name);
+      attachGestures(row, node._path, name);
     }
   });
 }
 
-function fileIconHtml(ext) {
+function fileIconHtml(ext, isDir) {
+  if (isDir) return '&#x1F4C1;';
   var map = {
     js:'&#x1F7E8;', jsx:'&#x269B;&#xFE0F;', ts:'&#x1F537;', tsx:'&#x269B;&#xFE0F;',
     html:'&#x1F310;', css:'&#x1F3A8;', json:'&#x1F4CB;', md:'&#x1F4DD;',
@@ -526,11 +566,122 @@ function fileIconHtml(ext) {
   return map[ext] || '&#x1F4C4;';
 }
 
+// ── UNIFIED GESTURE HANDLER ───────────────────────────────────────────────
+function attachGestures(row, path, name) {
+  var startX = 0, startY = 0, startTime = 0;
+  var pressTimer = null;
+  var pressStep  = 0;
+  var lastTap    = 0;
+  var singleTimer = null;
+  var didLongPress = false;
+  var didSwipe     = false;
+  var swipeDir     = 0; // -1 left, 1 right
+  var hintL = row.querySelector('.swipe-hint-l');
+  var hintR = row.querySelector('.swipe-hint-r');
+
+  function startPress(e) {
+    if (e.touches && e.touches.length > 1) return;
+    startX = e.touches ? e.touches[0].clientX : e.clientX;
+    startY = e.touches ? e.touches[0].clientY : e.clientY;
+    startTime    = Date.now();
+    didLongPress = false;
+    didSwipe     = false;
+    swipeDir     = 0;
+    pressStep    = 0;
+
+    var iconEl = row.querySelector('.t-icon');
+    if (iconEl) {
+      var ih = iconEl.innerHTML;
+      iconEl.outerHTML = '<div class="pc-ring-wrap"><span class="t-icon-inner">' + ih + '</span>'
+        + '<svg viewBox="0 0 26 26"><circle cx="13" cy="13" r="10"/></svg></div>';
+    }
+    row.classList.add('pc-pressing');
+
+    var circle = row.querySelector('.pc-ring-wrap circle');
+    pressTimer = setInterval(function() {
+      pressStep++;
+      if (circle) circle.style.strokeDashoffset = String(62.8 * (1 - pressStep / PC_STEPS));
+      if (pressStep >= PC_STEPS) {
+        clearInterval(pressTimer); pressTimer = null;
+        didLongPress = true;
+        restoreRow(row);
+        triggerPressCommit(path, name);
+      }
+    }, PC_HOLD_MS / PC_STEPS);
+  }
+
+  function cancelPress() {
+    if (pressTimer) { clearInterval(pressTimer); pressTimer = null; }
+    restoreRow(row);
+  }
+
+  function onTouchMove(e) {
+    var dx = e.touches[0].clientX - startX;
+    var dy = e.touches[0].clientY - startY;
+    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+      cancelPress();
+    }
+    if (Math.abs(dx) > 14 && Math.abs(dx) > Math.abs(dy) * 0.7) {
+      didSwipe = true;
+      swipeDir = dx < 0 ? -1 : 1;
+      // Show hint strip
+      var prog = Math.min(Math.abs(dx) / 120, 1);
+      if (dx < 0 && hintL) hintL.style.width = (prog * 80) + 'px';
+      if (dx > 0 && hintR) hintR.style.width = (prog * 80) + 'px';
+    }
+  }
+
+  function onTouchEnd(e) {
+    cancelPress();
+    if (hintL) hintL.style.width = '0';
+    if (hintR) hintR.style.width = '0';
+    if (didLongPress) return;
+    var dx = e.changedTouches[0].clientX - startX;
+    var dy = e.changedTouches[0].clientY - startY;
+    var dt = Date.now() - startTime;
+    if (didSwipe && dt < 700 && Math.abs(dx) >= SWIPE_THRESH && Math.abs(dx) > Math.abs(dy) * 0.9) {
+      if (dx < 0) openSwapSheet(path, name);
+      else triggerRevertCommit(path, name);
+      return;
+    }
+  }
+
+  row.addEventListener('touchstart',  startPress,   { passive: true });
+  row.addEventListener('touchmove',   onTouchMove,  { passive: true });
+  row.addEventListener('touchend',    onTouchEnd,   { passive: true });
+  row.addEventListener('touchcancel', cancelPress,  { passive: true });
+  row.addEventListener('mousedown',   startPress);
+  row.addEventListener('mouseup',     cancelPress);
+  row.addEventListener('mouseleave',  cancelPress);
+
+  row.addEventListener('click', function() {
+    if (didLongPress || (didSwipe && Math.abs(swipeDir) > 0)) return;
+    var now = Date.now();
+    var gap = now - lastTap;
+    lastTap = now;
+    if (gap < DBL_TAP_MS && gap > 0) {
+      clearTimeout(singleTimer); singleTimer = null; lastTap = 0;
+      triggerAppendCommit(path, name);
+    } else {
+      clearTimeout(singleTimer);
+      singleTimer = setTimeout(function() { singleTimer = null; openFile(path, name); }, DBL_TAP_MS);
+    }
+  });
+}
+
+function restoreRow(row) {
+  row.classList.remove('pc-pressing');
+  var wrap = row.querySelector('.pc-ring-wrap');
+  if (wrap) {
+    var inner = wrap.querySelector('.t-icon-inner').innerHTML;
+    wrap.outerHTML = '<span class="t-icon">' + inner + '</span>';
+  }
+}
+
 // ── FILE VIEW ─────────────────────────────────────────────────────────────
 async function openFile(path, name) {
   curFile = path; curSha = null;
   closeFnR();
-
   document.getElementById('tree-view').classList.add('slide-left');
   setTimeout(function() {
     document.getElementById('tree-view').classList.add('hidden');
@@ -556,7 +707,6 @@ async function openFile(path, name) {
     showBar('view');
     return;
   }
-
   try {
     var d    = await api({ action: 'get', path: path });
     curSha   = d.sha;
@@ -623,8 +773,7 @@ function copyFileContent() {
 function cutAll() {
   var ta = document.getElementById('fv-textarea');
   if (!ta.value) { toast('Editor already empty', 'bad'); return; }
-  ta.value = '';
-  ta.blur();
+  ta.value = ''; ta.blur();
   updateLineCount('');
   fnrClearState();
   toast('Editor cleared', 'ok');
@@ -638,9 +787,7 @@ async function pasteToEditor() {
     updateLineCount(text);
     fnrOnInput();
     toast('Pasted!', 'ok');
-  } catch(e) {
-    toast('Clipboard access denied', 'bad');
-  }
+  } catch(e) { toast('Clipboard access denied', 'bad'); }
 }
 
 function showBar(mode) {
@@ -715,7 +862,7 @@ function saveRepo() {
   loadTree();
 }
 
-// ── LINE COUNT ────────────────────────────────────────────────────────────
+// ── HELPERS ───────────────────────────────────────────────────────────────
 function updateLineCount(text) {
   var n = text ? text.split('\n').length : 0;
   document.getElementById('fv-lines').textContent = n ? (n + ' ln') : '';
@@ -726,13 +873,12 @@ document.getElementById('fv-textarea').addEventListener('input', function() {
   if (fnrOpen) fnrOnInput();
 });
 
-// ── SHEET HELPERS ─────────────────────────────────────────────────────────
 function closeSheet(id) { document.getElementById(id).classList.add('hidden'); }
+
 document.querySelectorAll('.sheet-bg').forEach(function(bg) {
   bg.addEventListener('click', function(e) { if (e.target === bg) bg.classList.add('hidden'); });
 });
 
-// ── B64 DECODE ────────────────────────────────────────────────────────────
 function b64Decode(b64) {
   try {
     var binary = atob(b64.replace(/\s/g, ''));
@@ -742,7 +888,9 @@ function b64Decode(b64) {
   } catch(e) { return ''; }
 }
 
-// ── TOAST ─────────────────────────────────────────────────────────────────
+// Normalize line endings to \n
+function normNL(s) { return s.replace(/\r\n/g, '\n').replace(/\r/g, '\n'); }
+
 var _tt;
 function toast(msg, type) {
   type = type || '';
@@ -754,17 +902,15 @@ function toast(msg, type) {
 }
 
 // ── FIND AND REPLACE ──────────────────────────────────────────────────────
-function toggleFnR() {
-  if (fnrOpen) closeFnR(); else openFnR();
-}
+function toggleFnR() { if (fnrOpen) closeFnR(); else openFnR(); }
 
 function openFnR() {
   fnrOpen = true;
   var panel   = document.getElementById('fnr-panel');
   var barEdit = document.getElementById('bar-edit');
   panel.classList.add('open');
-  var panelH = panel.offsetHeight || 110;
-  barEdit.style.bottom = panelH + 'px';
+  var h = panel.offsetHeight || 130;
+  barEdit.style.bottom = h + 'px';
   document.getElementById('fnr-toggle-btn').style.borderColor = 'rgba(255,209,102,0.5)';
   document.getElementById('fnr-toggle-btn').style.color = 'var(--warn)';
   setTimeout(function() { document.getElementById('fnr-find').focus(); }, 320);
@@ -773,10 +919,8 @@ function openFnR() {
 
 function closeFnR() {
   fnrOpen = false;
-  var panel   = document.getElementById('fnr-panel');
-  var barEdit = document.getElementById('bar-edit');
-  panel.classList.remove('open');
-  barEdit.style.bottom = '';
+  document.getElementById('fnr-panel').classList.remove('open');
+  document.getElementById('bar-edit').style.bottom = '';
   var btn = document.getElementById('fnr-toggle-btn');
   btn.style.borderColor = '';
   btn.style.color = '';
@@ -784,21 +928,22 @@ function closeFnR() {
 }
 
 function fnrClearState() {
-  fnrMatches = [];
-  fnrCurrent = -1;
+  fnrMatches = []; fnrCurrent = -1;
   document.getElementById('fnr-count').textContent = '--';
   document.getElementById('fnr-count').classList.remove('no-match');
 }
 
 function fnrBuildMatches() {
   var ta            = document.getElementById('fv-textarea');
-  var query         = document.getElementById('fnr-find').value;
+  var rawQuery      = document.getElementById('fnr-find').value;
   var caseSensitive = document.getElementById('fnr-case').checked;
   fnrMatches = [];
-  if (!query) { fnrClearState(); return; }
-  var text   = ta.value;
-  var needle = caseSensitive ? query : query.toLowerCase();
-  var hay    = caseSensitive ? text  : text.toLowerCase();
+  if (!rawQuery) { fnrClearState(); return; }
+  // Normalize newlines in both search query and file content
+  var text   = normNL(ta.value);
+  var query  = normNL(rawQuery);
+  var needle = caseSensitive ? query  : query.toLowerCase();
+  var hay    = caseSensitive ? text   : text.toLowerCase();
   var pos = 0;
   while (pos < hay.length) {
     var idx = hay.indexOf(needle, pos);
@@ -823,14 +968,14 @@ function fnrBuildMatches() {
 function fnrOnInput() { fnrCurrent = -1; fnrBuildMatches(); }
 
 function fnrScrollToCurrent() {
-  if (fnrMatches.length === 0) return;
+  if (!fnrMatches.length) return;
   var ta = document.getElementById('fv-textarea');
   var m  = fnrMatches[fnrCurrent];
   ta.focus();
   ta.setSelectionRange(m.start, m.end);
-  var lineHeight   = parseFloat(getComputedStyle(ta).lineHeight) || 20;
-  var linesBefore  = ta.value.substring(0, m.start).split('\n').length - 1;
-  ta.scrollTop     = Math.max(0, (linesBefore - 3) * lineHeight);
+  var lineHeight  = parseFloat(getComputedStyle(ta).lineHeight) || 20;
+  var linesBefore = normNL(ta.value).substring(0, m.start).split('\n').length - 1;
+  ta.scrollTop    = Math.max(0, (linesBefore - 3) * lineHeight);
   document.getElementById('fnr-count').textContent = (fnrCurrent + 1) + '/' + fnrMatches.length;
 }
 
@@ -849,26 +994,27 @@ function fnrPrev() {
 function fnrReplaceOne() {
   if (!fnrMatches.length) { toast('Nothing to replace', 'bad'); return; }
   var ta      = document.getElementById('fv-textarea');
-  var replStr = document.getElementById('fnr-replace').value;
+  var replStr = normNL(document.getElementById('fnr-replace').value);
   var m       = fnrMatches[fnrCurrent];
-  ta.value    = ta.value.substring(0, m.start) + replStr + ta.value.substring(m.end);
+  var text    = normNL(ta.value);
+  ta.value    = text.substring(0, m.start) + replStr + text.substring(m.end);
   updateLineCount(ta.value);
   fnrBuildMatches();
   toast('Replaced 1 match', 'ok');
 }
 
 function fnrReplaceAll() {
-  var query         = document.getElementById('fnr-find').value;
-  var replStr       = document.getElementById('fnr-replace').value;
+  var rawQuery      = document.getElementById('fnr-find').value;
+  var replStr       = normNL(document.getElementById('fnr-replace').value);
   var caseSensitive = document.getElementById('fnr-case').checked;
-  if (!query) { toast('Enter a search term', 'bad'); return; }
+  if (!rawQuery) { toast('Enter a search term', 'bad'); return; }
   var ta    = document.getElementById('fv-textarea');
-  var text  = ta.value;
+  var text  = normNL(ta.value);
+  var query = normNL(rawQuery);
   var count = 0;
   var result;
   if (caseSensitive) {
-    var out = '';
-    var pos = 0;
+    var out = '', pos = 0;
     while (pos < text.length) {
       var idx = text.indexOf(query, pos);
       if (idx === -1) { out += text.substring(pos); break; }
@@ -889,169 +1035,17 @@ function fnrReplaceAll() {
 }
 
 document.getElementById('fnr-find').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') { e.preventDefault(); fnrNext(); }
   if (e.key === 'Escape') { e.preventDefault(); closeFnR(); }
 });
 document.getElementById('fnr-replace').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') { e.preventDefault(); fnrReplaceOne(); }
   if (e.key === 'Escape') { e.preventDefault(); closeFnR(); }
 });
 
-// ── TAP HANDLERS (single=open, double=AppendCommit) ───────────────────────
-function attachTapHandlers(row, path, name) {
-  var lastTap     = 0;
-  var singleTimer = null;
-  row.addEventListener('click', function() {
-    if (row.classList.contains('pc-pressing')) return;
-    var now = Date.now();
-    var gap = now - lastTap;
-    lastTap = now;
-    if (gap < DBL_TAP_MS && gap > 0) {
-      clearTimeout(singleTimer);
-      singleTimer = null;
-      lastTap     = 0;
-      triggerAppendCommit(path, name);
-    } else {
-      clearTimeout(singleTimer);
-      singleTimer = setTimeout(function() {
-        singleTimer = null;
-        openFile(path, name);
-      }, DBL_TAP_MS);
-    }
-  });
-}
-
-// ── APPEND COMMIT ─────────────────────────────────────────────────────────
-async function triggerAppendCommit(path, name) {
-  if (navigator.vibrate) navigator.vibrate([20, 30, 20]);
-  showPcBubble('AppendCommit', path, '');
-  var clipText;
-  try {
-    clipText = await navigator.clipboard.readText();
-  } catch(e) {
-    showPcBubble('Clipboard denied', 'Allow clipboard access', 'error');
-    hidePcBubbleAfter(2800); return;
-  }
-  if (!clipText || !clipText.trim()) {
-    showPcBubble('Clipboard empty', 'Copy some code first', 'error');
-    hidePcBubbleAfter(2400); return;
-  }
-  showPcBubble('Fetching...', path, '');
-  var existingText, sha;
-  try {
-    var d    = await api({ action: 'get', path: path });
-    sha          = d.sha;
-    existingText = b64Decode(d.content);
-  } catch(e) {
-    showPcBubble('Fetch failed', e.message, 'error');
-    hidePcBubbleAfter(2800); return;
-  }
-  showPcBubble('Appending...', path, '');
-  var sep      = existingText.endsWith('\n') ? '' : '\n';
-  var newContent = existingText + sep + clipText;
-  var lineCount  = clipText.split('\n').length;
-  var autoMsg    = 'AppendCommit: append to ' + name + ' +' + lineCount + ' line' + (lineCount !== 1 ? 's' : '');
-  try {
-    await api({ action: 'upload', path: path, content: newContent, message: autoMsg, sha: sha });
-  } catch(e) {
-    showPcBubble('Commit failed', e.message, 'error');
-    hidePcBubbleAfter(2800); return;
-  }
-  if (navigator.vibrate) navigator.vibrate([30, 20, 30, 20, 60]);
-  showPcBubble('Appended!', autoMsg, 'success');
-  hidePcBubbleAfter(2200);
-}
-
-// ── PRESS COMMIT ──────────────────────────────────────────────────────────
-function attachPressCommit(row, path, name) {
-  function startPress(e) {
-    if (e.touches && e.touches.length > 1) return;
-    _pcRow  = row;
-    _pcStep = 0;
-    var iconEl   = row.querySelector('.t-icon');
-    var iconHtml = iconEl.innerHTML;
-    iconEl.outerHTML = '<div class="pc-ring-wrap"><span class="t-icon-inner">' + iconHtml + '</span>'
-      + '<svg viewBox="0 0 26 26"><circle cx="13" cy="13" r="10"/></svg></div>';
-    row.classList.add('pc-pressing');
-    var circle   = row.querySelector('.pc-ring-wrap circle');
-    var interval = PC_HOLD_MS / PC_STEPS;
-    _pcTimer = setInterval(function() {
-      _pcStep++;
-      circle.style.strokeDashoffset = String(62.8 * (1 - _pcStep / PC_STEPS));
-      if (_pcStep >= PC_STEPS) {
-        clearInterval(_pcTimer);
-        _pcTimer = null;
-        triggerPressCommit(path, name);
-      }
-    }, interval);
-  }
-  function cancelPress() {
-    if (!_pcTimer) return;
-    clearInterval(_pcTimer);
-    _pcTimer = null;
-    restoreRow(row);
-  }
-  row.addEventListener('touchstart',  startPress,  { passive: true });
-  row.addEventListener('touchend',    cancelPress, { passive: true });
-  row.addEventListener('touchcancel', cancelPress, { passive: true });
-  row.addEventListener('touchmove',   cancelPress, { passive: true });
-  row.addEventListener('mousedown',   startPress);
-  row.addEventListener('mouseup',     cancelPress);
-  row.addEventListener('mouseleave',  cancelPress);
-}
-
-function restoreRow(row) {
-  row.classList.remove('pc-pressing');
-  var wrap = row.querySelector('.pc-ring-wrap');
-  if (wrap) {
-    var inner = wrap.querySelector('.t-icon-inner').innerHTML;
-    wrap.outerHTML = '<span class="t-icon">' + inner + '</span>';
-  }
-}
-
-async function triggerPressCommit(path, name) {
-  var row = _pcRow;
-  restoreRow(row);
-  if (navigator.vibrate) navigator.vibrate([30, 40, 60]);
-  showPcBubble('PressCommit', path, '');
-  var clipText;
-  try {
-    clipText = await navigator.clipboard.readText();
-  } catch(e) {
-    showPcBubble('Clipboard denied', 'Allow clipboard access', 'error');
-    hidePcBubbleAfter(2800); return;
-  }
-  if (!clipText || !clipText.trim()) {
-    showPcBubble('Clipboard empty', 'Copy some code first', 'error');
-    hidePcBubbleAfter(2400); return;
-  }
-  showPcBubble('Fetching...', path, '');
-  var sha;
-  try {
-    var d = await api({ action: 'get', path: path });
-    sha   = d.sha;
-  } catch(e) {
-    showPcBubble('Fetch failed', e.message, 'error');
-    hidePcBubbleAfter(2800); return;
-  }
-  showPcBubble('Committing...', path, '');
-  var lineCount = clipText.split('\n').length;
-  var autoMsg   = 'PressCommit: update ' + name + ' ' + lineCount + ' line' + (lineCount !== 1 ? 's' : '');
-  try {
-    await api({ action: 'upload', path: path, content: clipText, message: autoMsg, sha: sha });
-  } catch(e) {
-    showPcBubble('Commit failed', e.message, 'error');
-    hidePcBubbleAfter(2800); return;
-  }
-  if (navigator.vibrate) navigator.vibrate([40, 30, 40, 30, 80]);
-  showPcBubble('Committed!', autoMsg, 'success');
-  hidePcBubbleAfter(2200);
-}
-
+// ── PC BUBBLE (bottom bar) ────────────────────────────────────────────────
 function showPcBubble(title, sub, type) {
   var bubble = document.getElementById('pc-bubble');
   document.getElementById('pc-bubble-title').textContent = title;
-  document.getElementById('pc-bubble-sub').textContent   = sub;
+  document.getElementById('pc-bubble-sub').textContent   = sub || '';
   bubble.className = 'pc-bubble' + (type ? ' ' + type : '');
   bubble.classList.remove('show');
   requestAnimationFrame(function() {
@@ -1066,17 +1060,172 @@ function hidePcBubbleAfter(ms) {
   }, ms);
 }
 
+// Store content for revert
+function storeRevert(path, content) {
+  try { localStorage.setItem('rv_' + path.replace(/[^a-z0-9]/gi, '_'), content); } catch(e) {}
+}
+function getRevert(path) {
+  try { return localStorage.getItem('rv_' + path.replace(/[^a-z0-9]/gi, '_')); } catch(e) { return null; }
+}
+
+// ── APPEND COMMIT (double-tap) ────────────────────────────────────────────
+async function triggerAppendCommit(path, name) {
+  if (navigator.vibrate) navigator.vibrate([20, 30, 20]);
+  showPcBubble('AppendCommit', path, '');
+  var clipText;
+  try { clipText = await navigator.clipboard.readText(); }
+  catch(e) { showPcBubble('Clipboard denied', 'Allow clipboard access', 'error'); hidePcBubbleAfter(2800); return; }
+  if (!clipText || !clipText.trim()) { showPcBubble('Clipboard empty', 'Copy some code first', 'error'); hidePcBubbleAfter(2400); return; }
+  showPcBubble('Fetching...', path, '');
+  var existing, sha;
+  try {
+    var d    = await api({ action: 'get', path: path });
+    sha      = d.sha;
+    existing = b64Decode(d.content);
+  } catch(e) { showPcBubble('Fetch failed', e.message, 'error'); hidePcBubbleAfter(2800); return; }
+  storeRevert(path, existing);
+  showPcBubble('Appending...', path, '');
+  var sep      = existing.endsWith('\n') ? '' : '\n';
+  var newText  = existing + sep + clipText;
+  var lc       = clipText.split('\n').length;
+  var msg      = 'AppendCommit: append to ' + name + ' +' + lc + ' line' + (lc !== 1 ? 's' : '');
+  try { await api({ action: 'upload', path: path, content: newText, message: msg, sha: sha }); }
+  catch(e) { showPcBubble('Commit failed', e.message, 'error'); hidePcBubbleAfter(2800); return; }
+  if (navigator.vibrate) navigator.vibrate([30, 20, 30, 20, 60]);
+  showPcBubble('Appended!', msg, 'success');
+  hidePcBubbleAfter(2200);
+}
+
+// ── PRESS COMMIT (long press) ─────────────────────────────────────────────
+async function triggerPressCommit(path, name) {
+  if (navigator.vibrate) navigator.vibrate([30, 40, 60]);
+  showPcBubble('PressCommit', path, '');
+  var clipText;
+  try { clipText = await navigator.clipboard.readText(); }
+  catch(e) { showPcBubble('Clipboard denied', 'Allow clipboard access', 'error'); hidePcBubbleAfter(2800); return; }
+  if (!clipText || !clipText.trim()) { showPcBubble('Clipboard empty', 'Copy some code first', 'error'); hidePcBubbleAfter(2400); return; }
+  showPcBubble('Fetching...', path, '');
+  var sha, oldContent;
+  try {
+    var d      = await api({ action: 'get', path: path });
+    sha        = d.sha;
+    oldContent = b64Decode(d.content);
+  } catch(e) { showPcBubble('Fetch failed', e.message, 'error'); hidePcBubbleAfter(2800); return; }
+  storeRevert(path, oldContent);
+  showPcBubble('Committing...', path, '');
+  var lc  = clipText.split('\n').length;
+  var msg = 'PressCommit: update ' + name + ' ' + lc + ' line' + (lc !== 1 ? 's' : '');
+  try { await api({ action: 'upload', path: path, content: clipText, message: msg, sha: sha }); }
+  catch(e) { showPcBubble('Commit failed', e.message, 'error'); hidePcBubbleAfter(2800); return; }
+  if (navigator.vibrate) navigator.vibrate([40, 30, 40, 30, 80]);
+  showPcBubble('Committed!', msg, 'success');
+  hidePcBubbleAfter(2200);
+}
+
+// ── SWAP COMMIT (left swipe) ──────────────────────────────────────────────
+async function openSwapSheet(path, name) {
+  swapPath = path; swapName = name; swapClip = '';
+  document.getElementById('swap-file-label').textContent = path;
+  document.getElementById('swap-old').value = '';
+  var prev = document.getElementById('swap-clip-preview');
+  prev.textContent = 'Reading clipboard...';
+  document.getElementById('swap-sheet-bg').classList.remove('hidden');
+  try {
+    swapClip = await navigator.clipboard.readText();
+    if (swapClip) {
+      var lines = swapClip.split('\n');
+      var preview = lines.slice(0, 5).join('\n') + (lines.length > 5 ? '\n...' : '');
+      prev.textContent = preview;
+    } else {
+      prev.textContent = '(clipboard is empty)';
+    }
+  } catch(e) {
+    prev.textContent = '(clipboard access denied)';
+  }
+}
+
+async function submitSwapCommit() {
+  var oldCode = document.getElementById('swap-old').value;
+  if (!oldCode.trim()) { toast('Paste old code to replace', 'bad'); return; }
+  if (!swapClip || !swapClip.trim()) { toast('Clipboard is empty', 'bad'); return; }
+  var btn = document.getElementById('swap-btn');
+  btn.textContent = 'Swapping...'; btn.disabled = true;
+  showPcBubble('SwapCommit', swapPath, '');
+  closeSheet('swap-sheet-bg');
+  var sha, fileText;
+  try {
+    var d    = await api({ action: 'get', path: swapPath });
+    sha      = d.sha;
+    fileText = b64Decode(d.content);
+  } catch(e) {
+    showPcBubble('Fetch failed', e.message, 'error'); hidePcBubbleAfter(2800);
+    btn.textContent = 'Swap & Commit'; btn.disabled = false; return;
+  }
+  var normFile = normNL(fileText);
+  var normOld  = normNL(oldCode);
+  var normNew  = normNL(swapClip);
+  if (normFile.indexOf(normOld) === -1) {
+    showPcBubble('Not found', 'Old code was not found in ' + swapName, 'error');
+    hidePcBubbleAfter(3000);
+    btn.textContent = 'Swap & Commit'; btn.disabled = false; return;
+  }
+  storeRevert(swapPath, fileText);
+  var count   = 0;
+  var result  = normFile.split(normOld).join(function() { count++; return normNew; });
+  // simple replace all
+  result = '';
+  var pos = 0;
+  while (pos < normFile.length) {
+    var idx2 = normFile.indexOf(normOld, pos);
+    if (idx2 === -1) { result += normFile.substring(pos); break; }
+    result += normFile.substring(pos, idx2) + normNew;
+    pos = idx2 + normOld.length;
+    count++;
+  }
+  var lc  = normNew.split('\n').length;
+  var msg = 'SwapCommit: swap in ' + swapName + ' (' + count + ' occurrence' + (count > 1 ? 's' : '') + ')';
+  try { await api({ action: 'upload', path: swapPath, content: result, message: msg, sha: sha }); }
+  catch(e) {
+    showPcBubble('Commit failed', e.message, 'error'); hidePcBubbleAfter(2800);
+    btn.textContent = 'Swap & Commit'; btn.disabled = false; return;
+  }
+  if (navigator.vibrate) navigator.vibrate([30, 20, 60]);
+  showPcBubble('Swapped!', msg, 'success');
+  hidePcBubbleAfter(2200);
+  btn.textContent = 'Swap & Commit'; btn.disabled = false;
+}
+
+// ── REVERT COMMIT (right swipe) ───────────────────────────────────────────
+async function triggerRevertCommit(path, name) {
+  if (navigator.vibrate) navigator.vibrate([15, 25, 15]);
+  var prev = getRevert(path);
+  if (!prev) {
+    showPcBubble('No revert data', 'Use PressCommit/AppendCommit/SwapCommit first', 'warn');
+    hidePcBubbleAfter(3000); return;
+  }
+  showPcBubble('Reverting...', path, '');
+  var sha;
+  try {
+    var d = await api({ action: 'get', path: path });
+    sha   = d.sha;
+  } catch(e) { showPcBubble('Fetch failed', e.message, 'error'); hidePcBubbleAfter(2800); return; }
+  var msg = 'RevertCommit: revert ' + name + ' to previous version';
+  try { await api({ action: 'upload', path: path, content: prev, message: msg, sha: sha }); }
+  catch(e) { showPcBubble('Revert failed', e.message, 'error'); hidePcBubbleAfter(2800); return; }
+  // Clear revert data after using it
+  try { localStorage.removeItem('rv_' + path.replace(/[^a-z0-9]/gi, '_')); } catch(e2) {}
+  if (navigator.vibrate) navigator.vibrate([20, 15, 20, 15, 40]);
+  showPcBubble('Reverted!', msg, 'success');
+  hidePcBubbleAfter(2200);
+}
+
 // ── PWA ───────────────────────────────────────────────────────────────────
 (function setupPWA() {
   var manifest = {
-    name: 'Octave Deploy',
-    short_name: 'Deploy',
+    name: 'Octave Deploy', short_name: 'Deploy',
     description: 'GitHub file manager from your phone',
-    start_url: '/',
-    display: 'standalone',
-    orientation: 'portrait',
-    background_color: '#080810',
-    theme_color: '#080810'
+    start_url: '/', display: 'standalone', orientation: 'portrait',
+    background_color: '#080810', theme_color: '#080810'
   };
   try {
     var blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
