@@ -46,6 +46,15 @@ export async function onRequest(context) {
 
     // ── TREE ────────────────────────────────────────────────────────────────
     if (action === 'tree') {
+      if (path) {
+        // Non-recursive single-folder listing (used as a fallback when the
+        // full recursive tree is too large and GitHub truncates it)
+        const res = await gh(`/repos/${owner}/${repoName}/contents/${path}`);
+        const data = await res.json();
+        if (!res.ok) return json({ error: data.message || 'Failed to list folder' }, res.status);
+        const entries = Array.isArray(data) ? data.map(e => ({ name: e.name, path: e.path, type: e.type })) : [];
+        return json({ entries });
+      }
       let res = await gh(`/repos/${owner}/${repoName}/git/trees/main?recursive=1`);
       if (!res.ok) res = await gh(`/repos/${owner}/${repoName}/git/trees/master?recursive=1`);
       const data = await res.json();
