@@ -476,10 +476,54 @@ async function loadTree() {
   wrap.innerHTML = '<div class="tree-loading"><div class="spin"></div><div>Loading files...</div></div>';
   try {
     var data = await api({ action: 'tree' });
-    buildTree(data.tree ||[], wrap);
+    var flat = data.tree || [];
+    if (data.truncated) {
+      flat = await fillTruncatedTree(flat);
+    }
+    buildTree(flat, wrap);
   } catch(e) {
     wrap.innerHTML = '<div class="tree-loading" style="color:var(--error)">Error: ' + e.message + '</div>';
   }
+}
+
+// GitHub's recursive tree API silently truncates very large/deep repos,
+// dropping deeply nested folders first. When that happens, walk the
+// directories GitHub DID return and pull any missing nested folders
+// individually (non-recursive, fast, only for what's missing).
+async function fillTruncatedTree(flat) {
+  var known = {};
+  flat.forEach(function(item) { known[item.path] = true; });
+
+  var dirs = flat.filter(function(item) { return item.type === 'tree'; })
+                 .map(function(item) { return item.path; });
+
+  var queue = dirs.slice();
+  var seen = {};
+  while (queue.length) {
+    var dirPath = queue.shift();
+    if (seen[dirPath]) continue;
+    seen[dirPath] = true;
+
+    var prefix = dirPath + '/';
+    var hasChildren = flat.some(function(item) {
+      return item.path.indexOf(prefix) === 0;
+    });
+    if (hasChildren) continue;
+
+    try {
+      var data = await api({ action: 'tree', path: dirPath });
+      var entries = data.entries || data.tree || [];
+      entries.forEach(function(entry) {
+        var fullPath = dirPath + '/' + (entry.name || entry.path);
+        if (known[fullPath]) return;
+        known[fullPath] = true;
+        var type = entry.type === 'dir' || entry.type === 'tree' ? 'tree' : 'blob';
+        flat.push({ path: fullPath, type: type });
+        if (type === 'tree') queue.push(fullPath);
+      });
+    } catch(e) { /* skip folder on error, rest of tree still usable */ }
+  }
+  return flat;
 }
 
 function buildTree(flat, container) {
