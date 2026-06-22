@@ -137,78 +137,62 @@ export async function onRequest(context) {
         // Detect module worker (has export/import statements)
         const isModule = /(?:^|\s|;)export(?:\s+|\{)|(?:^|\s|;)import\s+/.test(script);
 
-        let body, headers;
-
         if (isModule) {
-          // Module workers must be uploaded as multipart form-data with metadata.
-          // Try to fetch existing settings so we don't wipe Durable Object bindings,
-          // KV namespaces, etc. that are already configured on this worker.
-          let existingSettings = null;
-          try {
-            const settingsRes = await fetch(cfBase + cfPath + '/settings', {
-              headers: {
-                'Authorization': `Bearer ${env.CF_API_TOKEN}`,
-                'Content-Type': 'application/json',
-              }
-            });
-            if (settingsRes.ok) {
-              const settingsData = await settingsRes.json();
-              existingSettings = settingsData.result || settingsData;
-            }
-          } catch (e) {
-            // Settings fetch failed — proceed with basic metadata
-          }
-
-          const boundary = '----FormBoundary' + Date.now().toString(36) + Math.random().toString(36).slice(2);
-
+          // Module workers MUST be uploaded as multipart/form-data with metadata.
+          // CRITICAL: Do NOT set Content-Type manually — let fetch generate the boundary.
+          // CRITICAL: The script part MUST have a filename in Content-Disposition.
+          // CRITICAL: Use application/javascript+module for module workers.
           const metadata = {
             main_module: 'index.js',
-            ...(existingSettings || {})
+            compatibility_date: '2026-06-22',
           };
 
-          const metadataJson = JSON.stringify(metadata);
+          const form = new FormData();
+          form.append(
+            'metadata',
+            new Blob([JSON.stringify(metadata)], { type: 'application/json' })
+          );
+          form.append(
+            'index.js',
+            new Blob([script], { type: 'application/javascript+module' }),
+            'index.js'
+          );
 
-          body = [
-            `--${boundary}`,
-            `Content-Disposition: form-data; name="metadata"`,
-            `Content-Type: application/json`,
-            ``,
-            metadataJson,
-            `--${boundary}`,
-            `Content-Disposition: form-data; name="index.js"; filename="index.js"`,
-            `Content-Type: application/javascript`,
-            ``,
-            script,
-            `--${boundary}--`,
-            ``
-          ].join('\r\n');
+          const res = await fetch(cfBase + cfPath, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${env.CF_API_TOKEN}`,
+              // NO 'Content-Type' header here — fetch sets it with the correct boundary
+            },
+            body: form,
+          });
 
-          headers = {
-            'Authorization': `Bearer ${env.CF_API_TOKEN}`,
-            'Content-Type': `multipart/form-data; boundary=${boundary}`,
-          };
+          const text = await res.text();
+          if (!res.ok) {
+            let msg = 'CF deploy failed';
+            try { msg = JSON.parse(text).errors?.[0]?.message || msg; } catch (e) {}
+            return json({ error: msg }, res.status);
+          }
+          return json({ ok: true });
         } else {
           // Classic service worker — raw JS upload
-          body = script;
-          headers = {
-            'Authorization': `Bearer ${env.CF_API_TOKEN}`,
-            'Content-Type': 'application/javascript',
-          };
-        }
+          const res = await fetch(cfBase + cfPath, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${env.CF_API_TOKEN}`,
+              'Content-Type': 'application/javascript',
+            },
+            body: script,
+          });
 
-        const res = await fetch(cfBase + cfPath, {
-          method: 'PUT',
-          headers,
-          body,
-        });
-
-        const text = await res.text();
-        if (!res.ok) {
-          let msg = 'CF deploy failed';
-          try { msg = JSON.parse(text).errors?.[0]?.message || msg; } catch (e) {}
-          return json({ error: msg }, res.status);
+          const text = await res.text();
+          if (!res.ok) {
+            let msg = 'CF deploy failed';
+            try { msg = JSON.parse(text).errors?.[0]?.message || msg; } catch (e) {}
+            return json({ error: msg }, res.status);
+          }
+          return json({ ok: true });
         }
-        return json({ ok: true });
       }
 
       return json({ error: 'Unsupported cfOpts.method' }, 400);
