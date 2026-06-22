@@ -99,6 +99,60 @@ export async function onRequest(context) {
       return json(putData);
     }
 
+    // ── CLOUDFLARE WORKERS ───────────────────────────────────────────────────
+    if (action === 'cf') {
+      const { cfPath, cfOpts = {} } = body;
+      if (!cfPath) return json({ error: 'No cfPath' }, 400);
+      if (!env.CF_ACCOUNT_ID || !env.CF_API_TOKEN) {
+        return json({ error: 'CF_ACCOUNT_ID and CF_API_TOKEN secrets not set' }, 500);
+      }
+      const cfBase = `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}`;
+      const cfHeaders = {
+        'Authorization': `Bearer ${env.CF_API_TOKEN}`,
+        'Content-Type': 'application/javascript',
+      };
+
+      // List workers: GET /workers/scripts  → returns JSON
+      // Fetch single: GET /workers/scripts/:name → returns raw JS text
+      if (cfOpts.method === undefined || cfOpts.method === 'GET') {
+        const isList = cfPath === '/workers/scripts';
+        const res = await fetch(cfBase + cfPath, {
+          headers: {
+            'Authorization': `Bearer ${env.CF_API_TOKEN}`,
+            'Content-Type': 'application/json',
+          }
+        });
+        if (isList) {
+          const data = await res.json();
+          if (!res.ok) return json({ error: data.errors?.[0]?.message || 'CF error' }, res.status);
+          return json(data);
+        } else {
+          // Single worker script — CF returns raw JS
+          const script = await res.text();
+          if (!res.ok) return json({ error: 'Failed to fetch worker script' }, res.status);
+          return json({ script });
+        }
+      }
+
+      // Deploy / update worker: PUT /workers/scripts/:name
+      if (cfOpts.method === 'PUT') {
+        const res = await fetch(cfBase + cfPath, {
+          method: 'PUT',
+          headers: cfHeaders,
+          body: cfOpts.script,
+        });
+        const text = await res.text();
+        if (!res.ok) {
+          let msg = 'CF deploy failed';
+          try { msg = JSON.parse(text).errors?.[0]?.message || msg; } catch(e) {}
+          return json({ error: msg }, res.status);
+        }
+        return json({ ok: true });
+      }
+
+      return json({ error: 'Unsupported cfOpts.method' }, 400);
+    }
+
     return json({ error: 'Unknown action' }, 400);
   } catch (e) {
     return json({ error: e.message }, 500);
