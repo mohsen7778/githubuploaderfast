@@ -29,8 +29,11 @@ export async function onRequest(context) {
 
     if (action === 'auth') return json({ ok: true });
 
-    if (!repo) return json({ error: 'No repo specified' }, 400);
-    const [owner, repoName] = repo.split('/');
+    // Cloudflare Workers actions don't need a GitHub repo
+    if (!repo && action !== 'cf') {
+      return json({ error: 'No repo specified' }, 400);
+    }
+    const [owner, repoName] = repo ? repo.split('/') : [null, null];
 
     const gh = (url, opts = {}) =>
       fetch(`https://api.github.com${url}`, {
