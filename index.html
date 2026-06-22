@@ -200,6 +200,21 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
 #toast.ok{border-color:rgba(94,255,200,0.3);color:var(--success)}
 #toast.bad{border-color:rgba(255,92,122,0.3);color:var(--error)}
 
+/* MORE MENU */
+#more-menu{position:fixed;inset:0;z-index:300;background:transparent}
+#more-menu.hidden{display:none}
+.more-popup{position:absolute;top:58px;right:14px;background:var(--s2);border:1px solid var(--border);border-radius:14px;padding:6px;min-width:200px;box-shadow:0 8px 32px rgba(0,0,0,0.5)}
+.more-item{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;font-family:var(--sans);color:var(--cream);transition:background 0.12s}
+.more-item:active{background:rgba(255,120,172,0.08)}
+.more-item svg{color:var(--teal);flex-shrink:0}
+
+/* CF WORKERS LIST */
+.cf-worker-row{display:flex;align-items:center;gap:10px;padding:13px 10px;border-radius:12px;cursor:pointer;transition:background 0.12s}
+.cf-worker-row:active{background:rgba(255,120,172,0.06)}
+.cf-worker-dot{width:8px;height:8px;border-radius:50%;background:var(--success);flex-shrink:0}
+.cf-worker-name{flex:1;font-family:var(--mono);font-size:14px;color:var(--cream);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cf-worker-tag{font-size:10px;font-family:var(--mono);color:var(--teal);background:rgba(168,213,227,0.08);border:1px solid rgba(168,213,227,0.18);border-radius:5px;padding:2px 7px;flex-shrink:0}
+
 .hidden{display:none!important}
 </style>
 </head>
@@ -229,10 +244,21 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
       <span class="rp-icon">&#x26A1;</span>
       <span class="rp-text" id="repo-label">tap to set repo</span>
     </div>
+    <div class="top-icon-btn" id="copy-struct-btn" onclick="copyStructure()" title="Copy file structure" style="display:none">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        <path d="M13 3v4h4"/>
+      </svg>
+    </div>
     <div class="top-icon-btn" onclick="loadTree()" title="Refresh">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
         <path d="M3 3v5h5"/>
+      </svg>
+    </div>
+    <div class="top-icon-btn" id="more-btn" onclick="openMoreMenu()" title="More">
+      <svg width="4" height="16" viewBox="0 0 4 16" fill="currentColor">
+        <circle cx="2" cy="2" r="1.5"/><circle cx="2" cy="8" r="1.5"/><circle cx="2" cy="14" r="1.5"/>
       </svg>
     </div>
   </div>
@@ -368,6 +394,36 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
     <div class="f-label">Owner / Repo</div>
     <input type="text" class="f-input" id="repo-input" placeholder="mohsen7778/my-repo">
     <button class="btn-pink" style="margin-top:20px;width:100%" onclick="saveRepo()">Load Repo</button>
+  </div>
+</div>
+
+<!-- MORE MENU POPUP -->
+<div id="more-menu" class="hidden" onclick="closeMoreMenu()">
+  <div class="more-popup" onclick="event.stopPropagation()">
+    <div class="more-item" onclick="openCfWorkersSheet();closeMoreMenu()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+      </svg>
+      <span>Cloudflare Workers</span>
+    </div>
+  </div>
+</div>
+
+<!-- CF WORKERS SHEET -->
+<div class="sheet-bg hidden" id="cf-sheet-bg">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-drag"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div class="sheet-title" style="margin-bottom:0">Workers</div>
+      <div id="cf-refresh-btn" onclick="loadCfWorkers(true)" style="cursor:pointer;color:var(--dim);padding:4px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
+        </svg>
+      </div>
+    </div>
+    <div id="cf-workers-list">
+      <div class="tree-loading"><div class="spin"></div><div>Loading workers...</div></div>
+    </div>
   </div>
 </div>
 
@@ -540,6 +596,7 @@ function buildTree(flat, container) {
   });
   container.innerHTML = '';
   renderLevel(root, container);
+  maybeShowStructureBtn();
 }
 
 function renderLevel(obj, el) {
@@ -1142,6 +1199,191 @@ async function triggerPasteCommit(path, name) {
   showPcBubble('Pasted!', msg, 'success');
   hidePcBubbleAfter(2200);
 }
+
+// ── COPY FILE STRUCTURE ───────────────────────────────────────────────────
+function copyStructure() {
+  var wrap = document.getElementById('tree-wrap');
+  var lines = [];
+  var repo  = localStorage.getItem(K_REPO) || 'repo';
+  lines.push(repo + '/');
+  buildStructureLines(wrap, lines, '');
+  var text = lines.join('\n');
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(function() { toast('Structure copied!', 'ok'); });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta); toast('Structure copied!', 'ok');
+  }
+}
+
+function buildStructureLines(container, lines, prefix) {
+  var items = Array.from(container.children).filter(function(c) {
+    return c.classList.contains('t-item') || c.classList.contains('t-children');
+  });
+  // pair each t-item with its sibling t-children (if any)
+  var pairs = [];
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].classList.contains('t-item')) {
+      var kids = (items[i + 1] && items[i + 1].classList.contains('t-children')) ? items[i + 1] : null;
+      pairs.push({ row: items[i], kids: kids });
+      if (kids) i++;
+    }
+  }
+  pairs.forEach(function(p, idx) {
+    var isLast  = idx === pairs.length - 1;
+    var branch  = isLast ? '└── ' : '├── ';
+    var childPfx = isLast ? '    ' : '│   ';
+    var nameEl  = p.row.querySelector('.t-name');
+    var name    = nameEl ? nameEl.textContent : '?';
+    var isDir   = p.row.classList.contains('is-folder');
+    lines.push(prefix + branch + name + (isDir ? '/' : ''));
+    if (p.kids) buildStructureLines(p.kids, lines, prefix + childPfx);
+  });
+}
+
+// Show copy-structure button only when tree has content
+function maybeShowStructureBtn() {
+  var wrap = document.getElementById('tree-wrap');
+  var has  = wrap.querySelector('.t-item') !== null;
+  document.getElementById('copy-struct-btn').style.display = has ? 'flex' : 'none';
+}
+
+// ── MORE MENU ─────────────────────────────────────────────────────────────
+function openMoreMenu() { document.getElementById('more-menu').classList.remove('hidden'); }
+function closeMoreMenu() { document.getElementById('more-menu').classList.add('hidden'); }
+
+// ── CLOUDFLARE WORKERS ────────────────────────────────────────────────────
+var K_CF_WORKERS  = 'odp_cf_workers';
+var K_CF_WORKER_NAME = 'odp_cf_worker_name'; // active worker being edited
+var cfWorkerScript = null;   // script text loaded for editing
+var cfEditingWorker = null;  // worker name string
+
+async function cfApi(path, opts) {
+  var r = await fetch('/api', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getPw() },
+    body: JSON.stringify(Object.assign({ action: 'cf', cfPath: path, cfOpts: opts || {} }))
+  });
+  if (r.status === 401) { localStorage.removeItem(K_PW); location.reload(); }
+  var d = await r.json();
+  if (!r.ok) throw new Error(d.error || 'CF API error');
+  return d;
+}
+
+function openCfWorkersSheet() {
+  document.getElementById('cf-sheet-bg').classList.remove('hidden');
+  loadCfWorkers(false);
+}
+
+async function loadCfWorkers(forceRefresh) {
+  var listEl = document.getElementById('cf-workers-list');
+  // Use cache unless forced refresh
+  if (!forceRefresh) {
+    var cached = localStorage.getItem(K_CF_WORKERS);
+    if (cached) {
+      try { renderCfWorkers(JSON.parse(cached)); return; } catch(e) {}
+    }
+  }
+  listEl.innerHTML = '<div class="tree-loading"><div class="spin"></div><div>Loading workers...</div></div>';
+  try {
+    var data = await cfApi('/workers/scripts');
+    var workers = (data.result || []).map(function(w) { return { id: w.id, modified: w.modified_on }; });
+    localStorage.setItem(K_CF_WORKERS, JSON.stringify(workers));
+    renderCfWorkers(workers);
+  } catch(e) {
+    listEl.innerHTML = '<div class="tree-loading" style="color:var(--error)">Error: ' + e.message + '<br><span style="font-size:11px;color:var(--dim)">Check CF_ACCOUNT_ID + CF_API_TOKEN secrets</span></div>';
+  }
+}
+
+function renderCfWorkers(workers) {
+  var listEl = document.getElementById('cf-workers-list');
+  if (!workers || !workers.length) {
+    listEl.innerHTML = '<div class="tree-loading" style="color:var(--dim)">No workers found</div>';
+    return;
+  }
+  listEl.innerHTML = '';
+  workers.forEach(function(w) {
+    var row = document.createElement('div');
+    row.className = 'cf-worker-row';
+    var d = w.modified ? new Date(w.modified).toLocaleDateString(undefined, {month:'short',day:'numeric'}) : '';
+    row.innerHTML = '<div class="cf-worker-dot"></div>'
+      + '<div class="cf-worker-name">' + w.id + '</div>'
+      + (d ? '<div class="cf-worker-tag">' + d + '</div>' : '');
+    row.addEventListener('click', function() { openCfWorker(w.id); });
+    listEl.appendChild(row);
+  });
+}
+
+async function openCfWorker(workerName) {
+  closeSheet('cf-sheet-bg');
+  cfEditingWorker = workerName;
+  // Switch to file-view style for editing
+  curFile = null; curSha = null;
+  closeFnR();
+  document.getElementById('tree-view').classList.add('slide-left');
+  setTimeout(function() {
+    document.getElementById('tree-view').classList.add('hidden');
+    document.getElementById('tree-view').classList.remove('slide-left');
+  }, 280);
+  var fv = document.getElementById('file-view');
+  fv.classList.remove('hidden');
+  document.getElementById('fab').classList.add('hidden');
+  document.getElementById('fv-name').textContent = workerName;
+  document.getElementById('fv-path').textContent = 'workers/' + workerName;
+  document.getElementById('fv-lines').textContent = '';
+  document.getElementById('fv-loading').classList.remove('hidden');
+  document.getElementById('fv-content').classList.add('hidden');
+  document.getElementById('fv-msg').value = 'Update ' + workerName;
+  document.getElementById('fnr-toggle-btn').style.display = 'none';
+  showBar('none');
+
+  try {
+    var data = await cfApi('/workers/scripts/' + encodeURIComponent(workerName));
+    cfWorkerScript = data.script || '';
+    document.getElementById('fv-textarea').value = cfWorkerScript;
+    document.getElementById('fv-code').textContent = cfWorkerScript;
+    updateLineCount(cfWorkerScript);
+    document.getElementById('fv-loading').classList.add('hidden');
+    document.getElementById('fv-view').classList.remove('hidden');
+    document.getElementById('fv-edit').classList.add('hidden');
+    document.getElementById('fv-content').classList.remove('hidden');
+    // Show view bar but wire commit to CF deploy
+    showBar('view');
+    document.getElementById('fnr-toggle-btn').style.display = 'none';
+  } catch(e) {
+    document.getElementById('fv-loading').innerHTML = '<div style="color:var(--error)">Error: ' + e.message + '</div>';
+  }
+}
+
+async function commitCfWorker() {
+  var content = document.getElementById('fv-textarea').value;
+  var btn = document.getElementById('commit-btn');
+  btn.textContent = 'Deploying...'; btn.disabled = true;
+  try {
+    await cfApi('/workers/scripts/' + encodeURIComponent(cfEditingWorker), { method: 'PUT', script: content });
+    toast('Worker deployed!', 'ok');
+    document.getElementById('fv-code').textContent = content;
+    cfWorkerScript = content;
+    cancelEdit();
+  } catch(e) { toast('Deploy error: ' + e.message, 'bad'); }
+  btn.textContent = 'Commit'; btn.disabled = false;
+}
+
+// Patch commitFile to dispatch to CF deploy when editing a worker
+var _origCommitFile = commitFile;
+commitFile = async function() {
+  if (cfEditingWorker && !curFile) { await commitCfWorker(); return; }
+  await _origCommitFile();
+};
+
+// Patch backToTree to clear CF state
+var _origBackToTree = backToTree;
+backToTree = function() {
+  cfEditingWorker = null; cfWorkerScript = null;
+  _origBackToTree();
+};
 
 // ── PWA ───────────────────────────────────────────────────────────────────
 (function setupPWA() {
