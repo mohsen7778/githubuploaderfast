@@ -240,6 +240,9 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
 <div id="app" class="hidden">
   <div class="topbar">
     <span class="topbar-wordmark">Deploy</span>
+    <div class="top-icon-btn" id="mode-toggle" onclick="toggleMode()" title="Toggle mode" style="width:auto;padding:0 10px;">
+      <span id="mode-label" style="font-size:11px;font-weight:800;font-family:var(--display);letter-spacing:-0.5px;color:var(--pink)">GH</span>
+    </div>
     <div class="repo-pill" onclick="openRepoSheet()">
       <span class="rp-icon">&#x26A1;</span>
       <span class="rp-text" id="repo-label">tap to set repo</span>
@@ -445,6 +448,8 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
 
 var K_PW   = 'odp_pw';
 var K_REPO = 'odp_repo';
+var K_HF_REPO = 'odp_hf_repo';
+var currentMode = localStorage.getItem('odp_mode') || 'github';
 
 var curFile = null;
 var curSha  = null;
@@ -463,6 +468,10 @@ var SWIPE_THRESH = 55;
 
 var _pcHideTimer = null;
 
+function getAction(name) {
+  return currentMode === 'github' ? name : 'hf_' + name;
+}
+
 // ── INIT ──────────────────────────────────────────────────────────────────
 (function init() {
   positionFab();
@@ -476,7 +485,6 @@ var _pcHideTimer = null;
 // ── FAB POSITIONING ───────────────────────────────────────────────────────
 function positionFab() {
   var fab = document.getElementById('fab');
-  // In tree view: no action bar, sit at comfortable bottom position
   fab.style.bottom = 'calc(28px + env(safe-area-inset-bottom, 0px))';
 }
 
@@ -503,21 +511,44 @@ async function doAuth() {
 
 function getPw() { return localStorage.getItem(K_PW) || ''; }
 
+// ── MODE TOGGLE ───────────────────────────────────────────────────────────
+function toggleMode() {
+  currentMode = currentMode === 'github' ? 'hf' : 'github';
+  localStorage.setItem('odp_mode', currentMode);
+  updateModeUI();
+  var repo = currentMode === 'github' ? localStorage.getItem(K_REPO) : localStorage.getItem(K_HF_REPO);
+  document.getElementById('repo-label').textContent = repo || 'tap to set repo';
+  if (!repo) {
+    document.getElementById('tree-wrap').innerHTML = '<div class="tree-loading"><div style="color:var(--dim)">Set a repo above to browse files</div></div>';
+    document.getElementById('copy-struct-btn').style.display = 'none';
+  }
+  loadTree();
+}
+
+function updateModeUI() {
+  var label = document.getElementById('mode-label');
+  if (!label) return;
+  label.textContent = currentMode === 'github' ? 'GH' : 'HF';
+  label.style.color = currentMode === 'github' ? 'var(--pink)' : 'var(--success)';
+}
+
 // ── BOOT ──────────────────────────────────────────────────────────────────
 function bootApp() {
   document.getElementById('auth-screen').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
-  var repo = localStorage.getItem(K_REPO);
+  updateModeUI();
+  var repo = currentMode === 'github' ? localStorage.getItem(K_REPO) : localStorage.getItem(K_HF_REPO);
   if (repo) { document.getElementById('repo-label').textContent = repo; loadTree(); }
   else openRepoSheet();
 }
 
 // ── API ───────────────────────────────────────────────────────────────────
 async function api(body) {
+  var repoKey = currentMode === 'github' ? K_REPO : K_HF_REPO;
   var r = await fetch('/api', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getPw() },
-    body: JSON.stringify(Object.assign({}, body, { repo: localStorage.getItem(K_REPO) }))
+    body: JSON.stringify(Object.assign({}, body, { repo: localStorage.getItem(repoKey) }))
   });
   if (r.status === 401) { localStorage.removeItem(K_PW); location.reload(); }
   var d = await r.json();
@@ -527,11 +558,12 @@ async function api(body) {
 
 // ── TREE ──────────────────────────────────────────────────────────────────
 async function loadTree() {
-  if (!localStorage.getItem(K_REPO)) return;
+  var repoKey = currentMode === 'github' ? K_REPO : K_HF_REPO;
+  if (!localStorage.getItem(repoKey)) return;
   var wrap = document.getElementById('tree-wrap');
   wrap.innerHTML = '<div class="tree-loading"><div class="spin"></div><div>Loading files...</div></div>';
   try {
-    var data = await api({ action: 'tree' });
+    var data = await api({ action: getAction('tree') });
     var flat = data.tree || [];
     if (data.truncated) {
       flat = await fillTruncatedTree(flat);
@@ -567,7 +599,7 @@ async function fillTruncatedTree(flat) {
     if (hasChildren) continue;
 
     try {
-      var data = await api({ action: 'tree', path: dirPath });
+      var data = await api({ action: getAction('tree'), path: dirPath });
       var entries = data.entries || data.tree || [];
       entries.forEach(function(entry) {
         var fullPath = dirPath + '/' + (entry.name || entry.path);
@@ -613,7 +645,6 @@ function renderLevel(obj, el) {
     var ext   = name.split('.').pop().toLowerCase();
     var row   = document.createElement('div');
     row.className = 't-item' + (isDir ? ' is-folder' : '');
-    // Swipe hint strips (both set to Paste as both gestures now paste)
     row.innerHTML = '<span class="swipe-hint-l">PASTE</span>'
       + '<span class="swipe-hint-r">PASTE</span>'
       + '<span class="t-icon">' + fileIconHtml(ext, isDir) + '</span>'
@@ -657,7 +688,7 @@ function attachGestures(row, path, name) {
   var singleTimer = null;
   var didLongPress = false;
   var didSwipe     = false;
-  var swipeDir     = 0; // -1 left, 1 right
+  var swipeDir     = 0;
   var hintL = row.querySelector('.swipe-hint-l');
   var hintR = row.querySelector('.swipe-hint-r');
 
@@ -706,14 +737,8 @@ function attachGestures(row, path, name) {
     if (Math.abs(dx) > 14 && Math.abs(dx) > Math.abs(dy) * 0.7) {
       didSwipe = true;
       swipeDir = dx < 0 ? -1 : 1;
-      
-      // Calculate visual pull intensity
       var prog = Math.min(Math.abs(dx) / 120, 1);
-      
-      // Right swipe (finger moving right): reveals the left edge 
       if (dx > 0 && hintL) hintL.style.width = (prog * 80) + 'px';
-      
-      // Left swipe (finger moving left): reveals the right edge 
       if (dx < 0 && hintR) hintR.style.width = (prog * 80) + 'px';
     }
   }
@@ -727,7 +752,6 @@ function attachGestures(row, path, name) {
     var dy = e.changedTouches[0].clientY - startY;
     var dt = Date.now() - startTime;
     if (didSwipe && dt < 700 && Math.abs(dx) >= SWIPE_THRESH && Math.abs(dx) > Math.abs(dy) * 0.9) {
-      // Both Left and Right swipe trigger Paste Commit now
       triggerPasteCommit(path, name);
       return;
     }
@@ -795,7 +819,7 @@ async function openFile(path, name) {
     return;
   }
   try {
-    var d    = await api({ action: 'get', path: path });
+    var d    = await api({ action: getAction('get'), path: path });
     curSha   = d.sha;
     var text = b64Decode(d.content);
     document.getElementById('fv-textarea').value = text;
@@ -843,11 +867,11 @@ async function commitFile() {
   var btn     = document.getElementById('commit-btn');
   btn.textContent = 'Saving...'; btn.disabled = true;
   try {
-    await api({ action: 'upload', path: curFile, content: content, message: msg, sha: curSha });
+    await api({ action: getAction('upload'), path: curFile, content: content, message: msg, sha: curSha });
     toast('Committed', 'ok');
     document.getElementById('fv-code').textContent = content;
     cancelEdit();
-    api({ action: 'get', path: curFile }).then(function(d) { curSha = d.sha; }).catch(function(){});
+    api({ action: getAction('get'), path: curFile }).then(function(d) { curSha = d.sha; }).catch(function(){});
   } catch(e) { toast('Error: ' + e.message, 'bad'); }
   btn.textContent = 'Commit'; btn.disabled = false;
 }
@@ -896,7 +920,7 @@ async function submitAppend() {
   var btn = document.getElementById('ap-btn');
   btn.textContent = 'Appending...'; btn.disabled = true;
   try {
-    await api({ action: 'append', path: curFile, content: content, message: msg });
+    await api({ action: getAction('append'), path: curFile, content: content, message: msg });
     toast('Appended!', 'ok');
     closeSheet('append-sheet-bg');
     openFile(curFile, curFile.split('/').pop());
@@ -926,7 +950,7 @@ async function submitUpload() {
   var btn = document.getElementById('up-btn');
   btn.textContent = 'Pushing...'; btn.disabled = true;
   try {
-    await api({ action: upMode === 'append' ? 'append' : 'upload', path: path, content: content, message: msg });
+    await api({ action: getAction(upMode === 'append' ? 'append' : 'upload'), path: path, content: content, message: msg });
     toast('Pushed to GitHub!', 'ok');
     closeSheet('upload-sheet-bg');
     loadTree();
@@ -936,14 +960,21 @@ async function submitUpload() {
 
 // ── REPO SHEET ────────────────────────────────────────────────────────────
 function openRepoSheet() {
-  document.getElementById('repo-input').value = localStorage.getItem(K_REPO) || '';
+  var repo = currentMode === 'github' ? localStorage.getItem(K_REPO) : localStorage.getItem(K_HF_REPO);
+  document.getElementById('repo-input').value = repo || '';
+  var title = document.querySelector('#repo-sheet-bg .sheet-title');
+  if (title) title.textContent = currentMode === 'github' ? 'Repository' : 'HF Repository';
   document.getElementById('repo-sheet-bg').classList.remove('hidden');
 }
 
 function saveRepo() {
   var v = document.getElementById('repo-input').value.trim();
   if (v.indexOf('/') === -1) { toast('Format: owner/repo', 'bad'); return; }
-  localStorage.setItem(K_REPO, v);
+  if (currentMode === 'github') {
+    localStorage.setItem(K_REPO, v);
+  } else {
+    localStorage.setItem(K_HF_REPO, v);
+  }
   document.getElementById('repo-label').textContent = v;
   closeSheet('repo-sheet-bg');
   loadTree();
@@ -1156,7 +1187,7 @@ async function triggerAppendCommit(path, name) {
   showPcBubble('Fetching...', path, '');
   var existing, sha;
   try {
-    var d    = await api({ action: 'get', path: path });
+    var d    = await api({ action: getAction('get'), path: path });
     sha      = d.sha;
     existing = b64Decode(d.content);
   } catch(e) { showPcBubble('Fetch failed', e.message, 'error'); hidePcBubbleAfter(2800); return; }
@@ -1166,7 +1197,7 @@ async function triggerAppendCommit(path, name) {
   var newText  = existing + sep + clipText;
   var lc       = clipText.split('\n').length;
   var msg      = 'AppendCommit: append to ' + name + ' +' + lc + ' line' + (lc !== 1 ? 's' : '');
-  try { await api({ action: 'upload', path: path, content: newText, message: msg, sha: sha }); }
+  try { await api({ action: getAction('upload'), path: path, content: newText, message: msg, sha: sha }); }
   catch(e) { showPcBubble('Commit failed', e.message, 'error'); hidePcBubbleAfter(2800); return; }
   if (navigator.vibrate) navigator.vibrate([30, 20, 30, 20, 60]);
   showPcBubble('Appended!', msg, 'success');
@@ -1185,14 +1216,14 @@ async function triggerPasteCommit(path, name) {
   showPcBubble('Fetching...', path, '');
   var sha;
   try {
-    var d = await api({ action: 'get', path: path });
+    var d = await api({ action: getAction('get'), path: path });
     sha   = d.sha;
   } catch(e) { showPcBubble('Fetch failed', e.message, 'error'); hidePcBubbleAfter(2800); return; }
   
   showPcBubble('Committing...', path, '');
   var lc  = clipText.split('\n').length;
   var msg = 'PasteCommit: replace ' + name + ' with ' + lc + ' line' + (lc !== 1 ? 's' : '');
-  try { await api({ action: 'upload', path: path, content: clipText, message: msg, sha: sha }); }
+  try { await api({ action: getAction('upload'), path: path, content: clipText, message: msg, sha: sha }); }
   catch(e) { showPcBubble('Commit failed', e.message, 'error'); hidePcBubbleAfter(2800); return; }
   
   if (navigator.vibrate) navigator.vibrate([40, 30, 40, 30, 80]);
@@ -1222,7 +1253,6 @@ function buildStructureLines(container, lines, prefix) {
   var items = Array.from(container.children).filter(function(c) {
     return c.classList.contains('t-item') || c.classList.contains('t-children');
   });
-  // pair each t-item with its sibling t-children (if any)
   var pairs = [];
   for (var i = 0; i < items.length; i++) {
     if (items[i].classList.contains('t-item')) {
@@ -1243,7 +1273,6 @@ function buildStructureLines(container, lines, prefix) {
   });
 }
 
-// Show copy-structure button only when tree has content
 function maybeShowStructureBtn() {
   var wrap = document.getElementById('tree-wrap');
   var has  = wrap.querySelector('.t-item') !== null;
@@ -1256,9 +1285,9 @@ function closeMoreMenu() { document.getElementById('more-menu').classList.add('h
 
 // ── CLOUDFLARE WORKERS ────────────────────────────────────────────────────
 var K_CF_WORKERS  = 'odp_cf_workers';
-var K_CF_WORKER_NAME = 'odp_cf_worker_name'; // active worker being edited
-var cfWorkerScript = null;   // script text loaded for editing
-var cfEditingWorker = null;  // worker name string
+var K_CF_WORKER_NAME = 'odp_cf_worker_name';
+var cfWorkerScript = null;
+var cfEditingWorker = null;
 
 async function cfApi(path, opts) {
   var r = await fetch('/api', {
@@ -1279,7 +1308,6 @@ function openCfWorkersSheet() {
 
 async function loadCfWorkers(forceRefresh) {
   var listEl = document.getElementById('cf-workers-list');
-  // Use cache unless forced refresh
   if (!forceRefresh) {
     var cached = localStorage.getItem(K_CF_WORKERS);
     if (cached) {
@@ -1319,7 +1347,6 @@ function renderCfWorkers(workers) {
 async function openCfWorker(workerName) {
   closeSheet('cf-sheet-bg');
   cfEditingWorker = workerName;
-  // Switch to file-view style for editing
   curFile = null; curSha = null;
   closeFnR();
   document.getElementById('tree-view').classList.add('slide-left');
@@ -1349,7 +1376,6 @@ async function openCfWorker(workerName) {
     document.getElementById('fv-view').classList.remove('hidden');
     document.getElementById('fv-edit').classList.add('hidden');
     document.getElementById('fv-content').classList.remove('hidden');
-    // Show view bar but wire commit to CF deploy
     showBar('view');
     document.getElementById('fnr-toggle-btn').style.display = 'none';
   } catch(e) {
@@ -1371,14 +1397,12 @@ async function commitCfWorker() {
   btn.textContent = 'Commit'; btn.disabled = false;
 }
 
-// Patch commitFile to dispatch to CF deploy when editing a worker
 var _origCommitFile = commitFile;
 commitFile = async function() {
   if (cfEditingWorker && !curFile) { await commitCfWorker(); return; }
   await _origCommitFile();
 };
 
-// Patch backToTree to clear CF state
 var _origBackToTree = backToTree;
 backToTree = function() {
   cfEditingWorker = null; cfWorkerScript = null;
