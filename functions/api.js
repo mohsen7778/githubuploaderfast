@@ -329,27 +329,27 @@ export async function onRequest(context) {
           }
         }
 
-        // NEW: Use the commit endpoint (the old /upload endpoint is retired)
+        // NEW: Use JSON body commit endpoint (the old /upload endpoint is retired)
         const commitUrl = `${apiPrefix}/commit/main`;
 
-        const form = new FormData();
-        const fileKey = 'file_0';
-
-        // File operation metadata
-        form.append('files', JSON.stringify([
-          { key: fileKey, path: filePath, type: 'add' }
-        ]));
-
-        // Actual file content
-        form.append(fileKey, new Blob([finalContent]), filePath.split('/').pop());
-
-        // Commit message
-        form.append('commit_message', message || `${action}: ${filePath}`);
+        const payload = {
+          files: [
+            {
+              path: filePath,
+              content: encodeBase64(finalContent),
+              encoding: 'base64'
+            }
+          ],
+          commit_message: message || `${action}: ${filePath}`
+        };
 
         const commitRes = await fetch(commitUrl, {
           method: 'POST',
-          headers: { 'Authorization': `Bearer ${hfToken}` },
-          body: form,
+          headers: {
+            'Authorization': `Bearer ${hfToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
         });
 
         if (!commitRes.ok) {
