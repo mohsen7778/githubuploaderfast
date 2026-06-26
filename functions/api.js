@@ -109,8 +109,6 @@ export async function onRequest(context) {
       }
       const cfBase = `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}`;
 
-      // List workers: GET /workers/scripts  → returns JSON
-      // Fetch single: GET /workers/scripts/:name → returns raw JS text
       if (cfOpts.method === undefined || cfOpts.method === 'GET') {
         const isList = cfPath === '/workers/scripts';
         const res = await fetch(cfBase + cfPath, {
@@ -130,18 +128,11 @@ export async function onRequest(context) {
         }
       }
 
-      // Deploy / update worker: PUT /workers/scripts/:name
       if (cfOpts.method === 'PUT') {
         const script = cfOpts.script || '';
-
-        // Detect module worker (has export/import statements)
         const isModule = /(?:^|\s|;)export(?:\s+|\{)|(?:^|\s|;)import\s+/.test(script);
 
         if (isModule) {
-          // Module workers MUST be uploaded as multipart/form-data with metadata.
-          // CRITICAL: Do NOT set Content-Type manually — let fetch generate the boundary.
-          // CRITICAL: The script part MUST have a filename in Content-Disposition.
-          // CRITICAL: Use application/javascript+module for module workers.
           const metadata = {
             main_module: 'index.js',
             compatibility_date: '2026-06-22',
@@ -162,7 +153,6 @@ export async function onRequest(context) {
             method: 'PUT',
             headers: {
               'Authorization': `Bearer ${env.CF_API_TOKEN}`,
-              // NO 'Content-Type' header here — fetch sets it with the correct boundary
             },
             body: form,
           });
@@ -175,7 +165,6 @@ export async function onRequest(context) {
           }
           return json({ ok: true });
         } else {
-          // Classic service worker — raw JS upload
           const res = await fetch(cfBase + cfPath, {
             method: 'PUT',
             headers: {
@@ -196,6 +185,140 @@ export async function onRequest(context) {
       }
 
       return json({ error: 'Unsupported cfOpts.method' }, 400);
+    }
+
+    // ── HUGGING FACE ──────────────────────────────────────────────────────────
+    if (action.startsWith('hf_')) {
+      const hfToken = env.HF_TOKEN;
+      if (!hfToken) {
+        return json({ error: 'HF_TOKEN secret not set' }, 500);
+      }
+
+      const repoId = repo;
+
+      function encodePath(p) {
+        return p.split('/').map(encodeURIComponent).join('/');
+      }
+
+      const encodedRepoId = repoId.split('/').map(encodeURIComponent).join('/');
+
+      // Determine repo type (models, datasets, or spaces)
+      async function getRepoType() {
+        for (const type of ['models', 'datasets', 'spaces']) {
+          const res = await fetch(`https://huggingface.co/api/${type}/${encodedRepoId}`, {
+            headers: { 'Authorization': `Bearer ${hfToken}`, 'Accept': 'application/json' }
+          });
+          if (res.ok) return type;
+        }
+        return null;
+      }
+
+      let repoType = await getRepoType();
+      if (!repoType) {
+        return json({ error: 'HF repo not found or not accessible. Check HF_TOKEN and repo name.' }, 404);
+      }
+
+      // ── HF TREE ─────────────────────────────────────────────────────────────
+      if (action === 'hf_tree') {
+        const subPath = path || '';
+
+        async function fetchTree(treePath) {
+          const url = `https://huggingface.co/api/${repoType}/${encodedRepoId}/tree/main/${encodePath(treePath)}`;
+          const res = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${hfToken}`, 'Accept': 'application/json' }
+          });
+          if (!res.ok) return [];
+          const data = await res.json();
+          return Array.isArray(data) ? data : [];
+        }
+
+        const flat = [];
+        const queue = [subPath];
+        const seen = new Set();
+
+        while (queue.length) {
+          const dir = queue.shift();
+          if (seen.has(dir)) continue;
+          seen.add(dir);
+          const items = await fetchTree(dir);
+          for (const item of items) {
+            if (flat.some(f => f.path === item.path)) continue;
+            flat.push({ path: item.path, type: item.type === 'directory' ? 'tree' : 'blob' });
+            if (item.type === 'directory') {
+              queue.push(item.path);
+            }
+          }
+        }
+
+        return json({ tree: flat, truncated: false });
+      }
+
+      // ── HF GET ────────────────────────────────────────────────────────────────
+      if (action === 'hf_get') {
+        if (!path) return json({ error: 'No path specified' }, 400);
+        const filePath = path;
+        const res = await fetch(`https://huggingface.co/${encodedRepoId}/resolve/main/${encodePath(filePath)}`, {
+          headers: { 'Authorization': `Bearer ${hfToken}` }
+        });
+        if (!res.ok) {
+          return json({ error: 'File not found or access denied' }, res.status);
+        }
+
+        const arrayBuffer = await res.arrayBuffer();
+        const bytes = new Uint8Array(arrayBuffer);
+        let binary = '';
+        for (let i = 0; i < bytes.length; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        const base64 = btoa(binary);
+
+        return json({ content: base64, sha: 'hf-' + filePath });
+      }
+
+      // ── HF UPLOAD / APPEND ───────────────────────────────────────────────────
+      if (action === 'hf_upload' || action === 'hf_append') {
+        if (!path) return json({ error: 'No path specified' }, 400);
+        const filePath = path;
+        let finalContent = content;
+
+        if (action === 'hf_append') {
+          try {
+            const getRes = await fetch(`https://huggingface.co/${encodedRepoId}/resolve/main/${encodePath(filePath)}`, {
+              headers: { 'Authorization': `Bearer ${hfToken}` }
+            });
+            if (getRes.ok) {
+              const existing = await getRes.text();
+              finalContent = existing + '\n\n' + content;
+            }
+          } catch (e) {
+            // file might not exist, proceed with just the new content
+          }
+        }
+
+        const form = new FormData();
+        form.append('file', new Blob([finalContent], { type: 'text/plain' }), filePath.split('/').pop());
+        form.append('commit_message', message || `${action}: ${filePath}`);
+
+        const uploadRes = await fetch(`https://huggingface.co/api/${repoType}/${encodedRepoId}/upload/main/${encodePath(filePath)}`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${hfToken}` },
+          body: form,
+        });
+
+        if (!uploadRes.ok) {
+          const errText = await uploadRes.text();
+          let errMsg = 'HF upload failed';
+          try {
+            const errJson = JSON.parse(errText);
+            errMsg = errJson.error || errJson.message || errMsg;
+          } catch (e) {}
+          return json({ error: errMsg }, uploadRes.status);
+        }
+
+        return json({ ok: true });
+      }
+
+      return json({ error: 'Unknown HF action' }, 400);
     }
 
     return json({ error: 'Unknown action' }, 400);
