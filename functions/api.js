@@ -29,7 +29,6 @@ export async function onRequest(context) {
 
     if (action === 'auth') return json({ ok: true });
 
-    // Cloudflare Workers actions don't need a GitHub repo
     if (!repo && action !== 'cf') {
       return json({ error: 'No repo specified' }, 400);
     }
@@ -47,7 +46,7 @@ export async function onRequest(context) {
         },
       });
 
-    // ── TREE ────────────────────────────────────────────────────────────────
+    // ── GITHUB TREE ───────────────────────────────────────────────────────────
     if (action === 'tree') {
       if (path) {
         const res = await gh(`/repos/${owner}/${repoName}/contents/${path}`);
@@ -62,14 +61,14 @@ export async function onRequest(context) {
       return json(data);
     }
 
-    // ── GET FILE ────────────────────────────────────────────────────────────
+    // ── GITHUB GET ────────────────────────────────────────────────────────────
     if (action === 'get') {
       const res = await gh(`/repos/${owner}/${repoName}/contents/${path}`);
       const data = await res.json();
       return json(data);
     }
 
-    // ── UPLOAD / APPEND ─────────────────────────────────────────────────────
+    // ── GITHUB UPLOAD / APPEND ────────────────────────────────────────────────
     if (action === 'upload' || action === 'append') {
       let fileSha = null;
       let finalContent = content;
@@ -187,26 +186,32 @@ export async function onRequest(context) {
       return json({ error: 'Unsupported cfOpts.method' }, 400);
     }
 
+    // ═══════════════════════════════════════════════════════════════════════════
     // ── HUGGING FACE ──────────────────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════════════
     if (action.startsWith('hf_')) {
       const hfToken = env.HF_TOKEN;
       if (!hfToken) {
         return json({ error: 'HF_TOKEN secret not set' }, 500);
       }
 
-      const repoId = repo;
+      const repoId = repo; // "user/repo"
 
+      // Helper: encode path segments for URL
       function encodePath(p) {
         return p.split('/').map(encodeURIComponent).join('/');
       }
 
       const encodedRepoId = repoId.split('/').map(encodeURIComponent).join('/');
 
-      // Determine repo type (models, datasets, or spaces)
+      // ── Detect repo type (models, datasets, spaces) ─────────────────────────
       async function getRepoType() {
         for (const type of ['models', 'datasets', 'spaces']) {
           const res = await fetch(`https://huggingface.co/api/${type}/${encodedRepoId}`, {
-            headers: { 'Authorization': `Bearer ${hfToken}`, 'Accept': 'application/json' }
+            headers: {
+              'Authorization': `Bearer ${hfToken}`,
+              'Accept': 'application/json'
+            }
           });
           if (res.ok) return type;
         }
@@ -215,17 +220,30 @@ export async function onRequest(context) {
 
       let repoType = await getRepoType();
       if (!repoType) {
-        return json({ error: 'HF repo not found or not accessible. Check HF_TOKEN and repo name.' }, 404);
+        return json({
+          error: 'HF repo not found or not accessible. Check HF_TOKEN and repo name. If using a Fine-grained token, try a Classic Write token instead.'
+        }, 404);
       }
+
+      // Build resolve URL prefix (models have no prefix, datasets/spaces do)
+      const resolvePrefix = repoType === 'models'
+        ? `https://huggingface.co/${encodedRepoId}`
+        : `https://huggingface.co/${repoType}/${encodedRepoId}`;
+
+      const apiPrefix = `https://huggingface.co/api/${repoType}/${encodedRepoId}`;
 
       // ── HF TREE ─────────────────────────────────────────────────────────────
       if (action === 'hf_tree') {
         const subPath = path || '';
 
         async function fetchTree(treePath) {
-          const url = `https://huggingface.co/api/${repoType}/${encodedRepoId}/tree/main/${encodePath(treePath)}`;
+          const suffix = treePath ? '/' + encodePath(treePath) : '';
+          const url = `${apiPrefix}/tree/main${suffix}`;
           const res = await fetch(url, {
-            headers: { 'Authorization': `Bearer ${hfToken}`, 'Accept': 'application/json' }
+            headers: {
+              'Authorization': `Bearer ${hfToken}`,
+              'Accept': 'application/json'
+            }
           });
           if (!res.ok) return [];
           const data = await res.json();
@@ -240,10 +258,14 @@ export async function onRequest(context) {
           const dir = queue.shift();
           if (seen.has(dir)) continue;
           seen.add(dir);
+
           const items = await fetchTree(dir);
           for (const item of items) {
             if (flat.some(f => f.path === item.path)) continue;
-            flat.push({ path: item.path, type: item.type === 'directory' ? 'tree' : 'blob' });
+            flat.push({
+              path: item.path,
+              type: item.type === 'directory' ? 'tree' : 'blob'
+            });
             if (item.type === 'directory') {
               queue.push(item.path);
             }
@@ -253,15 +275,28 @@ export async function onRequest(context) {
         return json({ tree: flat, truncated: false });
       }
 
-      // ── HF GET ────────────────────────────────────────────────────────────────
+      // ── HF GET ───────────────────────────────────────────────────────────────
       if (action === 'hf_get') {
         if (!path) return json({ error: 'No path specified' }, 400);
+
         const filePath = path;
-        const res = await fetch(`https://huggingface.co/${encodedRepoId}/resolve/main/${encodePath(filePath)}`, {
+        const url = `${resolvePrefix}/resolve/main/${encodePath(filePath)}`;
+
+        const res = await fetch(url, {
           headers: { 'Authorization': `Bearer ${hfToken}` }
         });
+
         if (!res.ok) {
-          return json({ error: 'File not found or access denied' }, res.status);
+          const status = res.status;
+          const errText = await res.text().catch(() => '');
+          // Distinguish auth vs not-found
+          if (status === 401 || status === 403) {
+            return json({ error: 'HF access denied. Token may lack permissions or repo is private.' }, status);
+          }
+          if (status === 404) {
+            return json({ error: 'File not found on HF (check path and branch). Path: ' + filePath }, 404);
+          }
+          return json({ error: 'HF fetch failed: ' + errText }, status);
         }
 
         const arrayBuffer = await res.arrayBuffer();
@@ -275,15 +310,16 @@ export async function onRequest(context) {
         return json({ content: base64, sha: 'hf-' + filePath });
       }
 
-      // ── HF UPLOAD / APPEND ───────────────────────────────────────────────────
+      // ── HF UPLOAD / APPEND ─────────────────────────────────────────────────
       if (action === 'hf_upload' || action === 'hf_append') {
         if (!path) return json({ error: 'No path specified' }, 400);
         const filePath = path;
         let finalContent = content;
 
+        // For append, fetch existing content first
         if (action === 'hf_append') {
           try {
-            const getRes = await fetch(`https://huggingface.co/${encodedRepoId}/resolve/main/${encodePath(filePath)}`, {
+            const getRes = await fetch(`${resolvePrefix}/resolve/main/${encodePath(filePath)}`, {
               headers: { 'Authorization': `Bearer ${hfToken}` }
             });
             if (getRes.ok) {
@@ -291,15 +327,17 @@ export async function onRequest(context) {
               finalContent = existing + '\n\n' + content;
             }
           } catch (e) {
-            // file might not exist, proceed with just the new content
+            // File might not exist, proceed with new content
           }
         }
+
+        const uploadUrl = `${apiPrefix}/upload/main/${encodePath(filePath)}`;
 
         const form = new FormData();
         form.append('file', new Blob([finalContent], { type: 'text/plain' }), filePath.split('/').pop());
         form.append('commit_message', message || `${action}: ${filePath}`);
 
-        const uploadRes = await fetch(`https://huggingface.co/api/${repoType}/${encodedRepoId}/upload/main/${encodePath(filePath)}`, {
+        const uploadRes = await fetch(uploadUrl, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${hfToken}` },
           body: form,
