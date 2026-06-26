@@ -329,18 +329,18 @@ export async function onRequest(context) {
           }
         }
 
-        // NEW: Use JSON body commit endpoint (the old /upload endpoint is retired)
+        // HF commit endpoint: uses "summary" (not "commit_message") and "files" array with base64 content
         const commitUrl = `${apiPrefix}/commit/main`;
 
         const payload = {
+          summary: message || `${action}: ${filePath}`,
           files: [
             {
               path: filePath,
               content: encodeBase64(finalContent),
               encoding: 'base64'
             }
-          ],
-          commit_message: message || `${action}: ${filePath}`
+          ]
         };
 
         const commitRes = await fetch(commitUrl, {
