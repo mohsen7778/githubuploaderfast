@@ -46,7 +46,7 @@ export async function onRequest(context) {
         },
       });
 
-    // ── GITHUB TREE ───────────────────────────────────────────────────────────
+    // ── GITHUB TREE ─────────────────────────────────────────────────────────
     if (action === 'tree') {
       if (path) {
         const res = await gh(`/repos/${owner}/${repoName}/contents/${path}`);
@@ -61,7 +61,7 @@ export async function onRequest(context) {
       return json(data);
     }
 
-    // ── GITHUB GET ────────────────────────────────────────────────────────────
+    // ── GITHUB GET ──────────────────────────────────────────────────────────
     if (action === 'get') {
       const res = await gh(`/repos/${owner}/${repoName}/contents/${path}`);
       const data = await res.json();
@@ -195,16 +195,15 @@ export async function onRequest(context) {
         return json({ error: 'HF_TOKEN secret not set' }, 500);
       }
 
-      const repoId = repo; // "user/repo"
+      const repoId = repo;
 
-      // Helper: encode path segments for URL
       function encodePath(p) {
         return p.split('/').map(encodeURIComponent).join('/');
       }
 
       const encodedRepoId = repoId.split('/').map(encodeURIComponent).join('/');
 
-      // ── Detect repo type (models, datasets, spaces) ─────────────────────────
+      // Detect repo type (models, datasets, spaces)
       async function getRepoType() {
         for (const type of ['models', 'datasets', 'spaces']) {
           const res = await fetch(`https://huggingface.co/api/${type}/${encodedRepoId}`, {
@@ -225,7 +224,7 @@ export async function onRequest(context) {
         }, 404);
       }
 
-      // Build resolve URL prefix (models have no prefix, datasets/spaces do)
+      // URL prefixes
       const resolvePrefix = repoType === 'models'
         ? `https://huggingface.co/${encodedRepoId}`
         : `https://huggingface.co/${repoType}/${encodedRepoId}`;
@@ -275,7 +274,7 @@ export async function onRequest(context) {
         return json({ tree: flat, truncated: false });
       }
 
-      // ── HF GET ───────────────────────────────────────────────────────────────
+      // ── HF GET ─────────────────────────────────────────────────────────────
       if (action === 'hf_get') {
         if (!path) return json({ error: 'No path specified' }, 400);
 
@@ -289,7 +288,6 @@ export async function onRequest(context) {
         if (!res.ok) {
           const status = res.status;
           const errText = await res.text().catch(() => '');
-          // Distinguish auth vs not-found
           if (status === 401 || status === 403) {
             return json({ error: 'HF access denied. Token may lack permissions or repo is private.' }, status);
           }
@@ -316,7 +314,7 @@ export async function onRequest(context) {
         const filePath = path;
         let finalContent = content;
 
-        // For append, fetch existing content first
+        // For append: fetch existing content first
         if (action === 'hf_append') {
           try {
             const getRes = await fetch(`${resolvePrefix}/resolve/main/${encodePath(filePath)}`, {
@@ -331,26 +329,37 @@ export async function onRequest(context) {
           }
         }
 
-        const uploadUrl = `${apiPrefix}/upload/main/${encodePath(filePath)}`;
+        // NEW: Use the commit endpoint (the old /upload endpoint is retired)
+        const commitUrl = `${apiPrefix}/commit/main`;
 
         const form = new FormData();
-        form.append('file', new Blob([finalContent], { type: 'text/plain' }), filePath.split('/').pop());
+        const fileKey = 'file_0';
+
+        // File operation metadata
+        form.append('files', JSON.stringify([
+          { key: fileKey, path: filePath, type: 'add' }
+        ]));
+
+        // Actual file content
+        form.append(fileKey, new Blob([finalContent]), filePath.split('/').pop());
+
+        // Commit message
         form.append('commit_message', message || `${action}: ${filePath}`);
 
-        const uploadRes = await fetch(uploadUrl, {
+        const commitRes = await fetch(commitUrl, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${hfToken}` },
           body: form,
         });
 
-        if (!uploadRes.ok) {
-          const errText = await uploadRes.text();
-          let errMsg = 'HF upload failed';
+        if (!commitRes.ok) {
+          const errText = await commitRes.text();
+          let errMsg = 'HF commit failed';
           try {
             const errJson = JSON.parse(errText);
             errMsg = errJson.error || errJson.message || errMsg;
           } catch (e) {}
-          return json({ error: errMsg }, uploadRes.status);
+          return json({ error: errMsg }, commitRes.status);
         }
 
         return json({ ok: true });
