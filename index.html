@@ -78,6 +78,10 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
 .t-children{padding-left:24px;display:none}
 .t-children.open{display:block}
 
+/* MASS COPY CHECKBOX */
+.t-check{display:none;align-items:center;justify-content:center;width:20px;height:20px;flex-shrink:0;margin-right:4px}
+.t-check input{width:16px;height:16px;accent-color:var(--pink);cursor:pointer}
+
 /* SWIPE HINT STRIP */
 .t-item .swipe-hint-l{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(255,209,102,0.12);transition:width 0.1s;border-radius:12px 0 0 12px;display:flex;align-items:center;padding-left:8px;overflow:hidden;font-size:11px;color:var(--warn);font-family:var(--display);font-weight:700;white-space:nowrap}
 .t-item .swipe-hint-r{position:absolute;right:0;top:0;bottom:0;width:0;background:rgba(94,255,200,0.1);transition:width 0.1s;border-radius:0 12px 12px 0;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;overflow:hidden;font-size:11px;color:var(--success);font-family:var(--display);font-weight:700;white-space:nowrap}
@@ -239,7 +243,9 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
 
 <div id="app" class="hidden">
   <div class="topbar">
-    <span class="topbar-wordmark">Deploy</span>
+    <div class="top-icon-btn" id="mass-copy-toggle" onclick="toggleMassCopyMode()" title="Mass Copy" style="width:auto;padding:0 10px;">
+      <span style="font-size:11px;font-weight:800;font-family:var(--display);letter-spacing:-0.5px;color:var(--pink)">MC</span>
+    </div>
     <div class="top-icon-btn" id="mode-toggle" onclick="toggleMode()" title="Toggle mode" style="width:auto;padding:0 10px;">
       <span id="mode-label" style="font-size:11px;font-weight:800;font-family:var(--display);letter-spacing:-0.5px;color:var(--pink)">GH</span>
     </div>
@@ -327,6 +333,12 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:var(--
       <button class="btn-ghost btn-cancel" onclick="cancelEdit()">Cancel</button>
       <button class="btn-hot" id="commit-btn" onclick="commitFile()">Commit</button>
     </div>
+  </div>
+
+  <div class="action-bar hidden" id="bar-masscopy">
+    <button class="btn-ghost" onclick="toggleSelectAll()" id="mc-selectall">Select All</button>
+    <button class="btn-hot" onclick="performMassCopy()" id="mc-copybtn">Copy Selected (0)</button>
+    <button class="btn-ghost btn-cancel" onclick="toggleMassCopyMode()">Cancel</button>
   </div>
 </div>
 
@@ -467,6 +479,10 @@ var DBL_TAP_MS   = 300;
 var SWIPE_THRESH = 55;
 
 var _pcHideTimer = null;
+
+// Mass Copy state
+var massCopyMode = false;
+var selectedFiles = new Set();
 
 function getAction(name) {
   return currentMode === 'github' ? name : 'hf_' + name;
@@ -645,12 +661,20 @@ function renderLevel(obj, el) {
     var ext   = name.split('.').pop().toLowerCase();
     var row   = document.createElement('div');
     row.className = 't-item' + (isDir ? ' is-folder' : '');
+    var checkHtml = isDir ? '' : '<span class="t-check" style="display:' + (massCopyMode ? 'flex' : 'none') + '"><input type="checkbox"></span>';
     row.innerHTML = '<span class="swipe-hint-l">PASTE</span>'
       + '<span class="swipe-hint-r">PASTE</span>'
+      + checkHtml
       + '<span class="t-icon">' + fileIconHtml(ext, isDir) + '</span>'
       + '<span class="t-name">' + name + '</span>'
       + (isDir ? '<span class="t-chevron">&#x203A;</span>' : '');
     el.appendChild(row);
+    if (!isDir && massCopyMode) {
+      var cb = row.querySelector('.t-check input');
+      cb.dataset.path = node._path;
+      cb.checked = selectedFiles.has(node._path);
+      cb.onchange = function() { toggleFileCheck(node._path, this); };
+    }
     if (isDir) {
       var kids = document.createElement('div');
       kids.className = 't-children';
@@ -693,6 +717,7 @@ function attachGestures(row, path, name) {
   var hintR = row.querySelector('.swipe-hint-r');
 
   function startPress(e) {
+    if (massCopyMode) return;
     if (e.touches && e.touches.length > 1) return;
     startX = e.touches ? e.touches[0].clientX : e.clientX;
     startY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -729,6 +754,7 @@ function attachGestures(row, path, name) {
   }
 
   function onTouchMove(e) {
+    if (massCopyMode) return;
     var dx = e.touches[0].clientX - startX;
     var dy = e.touches[0].clientY - startY;
     if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
@@ -748,6 +774,7 @@ function attachGestures(row, path, name) {
     if (hintL) hintL.style.width = '0';
     if (hintR) hintR.style.width = '0';
     if (didLongPress) return;
+    if (massCopyMode) return;
     var dx = e.changedTouches[0].clientX - startX;
     var dy = e.changedTouches[0].clientY - startY;
     var dt = Date.now() - startTime;
@@ -765,7 +792,16 @@ function attachGestures(row, path, name) {
   row.addEventListener('mouseup',     cancelPress);
   row.addEventListener('mouseleave',  cancelPress);
 
-  row.addEventListener('click', function() {
+  row.addEventListener('click', function(e) {
+    if (massCopyMode) {
+      if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') return;
+      var cb = row.querySelector('.t-check input');
+      if (cb) {
+        cb.checked = !cb.checked;
+        toggleFileCheck(path, cb);
+      }
+      return;
+    }
     if (didLongPress || (didSwipe && Math.abs(swipeDir) > 0)) return;
     var now = Date.now();
     var gap = now - lastTap;
@@ -800,6 +836,7 @@ async function openFile(path, name) {
   }, 280);
   document.getElementById('file-view').classList.remove('hidden');
   document.getElementById('fab').classList.add('hidden');
+  document.getElementById('bar-masscopy').classList.add('hidden');
   document.getElementById('fv-name').textContent = name;
   document.getElementById('fv-path').textContent = path;
   document.getElementById('fv-loading').classList.remove('hidden');
@@ -840,6 +877,7 @@ function backToTree() {
   document.getElementById('file-view').classList.add('hidden');
   document.getElementById('tree-view').classList.remove('hidden');
   document.getElementById('fab').classList.remove('hidden');
+  if (massCopyMode) document.getElementById('bar-masscopy').classList.remove('hidden');
   document.getElementById('fnr-toggle-btn').style.display = 'none';
   showBar('none');
   cancelEdit();
@@ -1408,6 +1446,118 @@ backToTree = function() {
   cfEditingWorker = null; cfWorkerScript = null;
   _origBackToTree();
 };
+
+// ── MASS COPY ─────────────────────────────────────────────────────────────
+function toggleMassCopyMode() {
+  if (document.getElementById('file-view').classList.contains('hidden') === false) {
+    backToTree();
+    setTimeout(function() { toggleMassCopyMode(); }, 300);
+    return;
+  }
+  massCopyMode = !massCopyMode;
+  var toggleBtn = document.getElementById('mass-copy-toggle');
+  var checks = document.querySelectorAll('.t-check');
+  if (massCopyMode) {
+    toggleBtn.style.borderColor = 'var(--pink)';
+    toggleBtn.style.background = 'rgba(255,120,172,0.15)';
+    toggleBtn.querySelector('span').textContent = 'X';
+    toggleBtn.title = 'Exit Mass Copy';
+    document.getElementById('bar-masscopy').classList.remove('hidden');
+    document.getElementById('fab').classList.add('hidden');
+    showBar('none');
+    checks.forEach(function(c) { c.style.display = 'flex'; });
+    updateMassCopyButton();
+  } else {
+    toggleBtn.style.borderColor = '';
+    toggleBtn.style.background = '';
+    toggleBtn.querySelector('span').textContent = 'MC';
+    toggleBtn.title = 'Mass Copy';
+    document.getElementById('bar-masscopy').classList.add('hidden');
+    document.getElementById('fab').classList.remove('hidden');
+    selectedFiles.clear();
+    checks.forEach(function(c) {
+      c.style.display = 'none';
+      var cb = c.querySelector('input');
+      if (cb) cb.checked = false;
+    });
+  }
+}
+
+function toggleFileCheck(path, cb) {
+  if (cb.checked) {
+    selectedFiles.add(path);
+  } else {
+    selectedFiles.delete(path);
+  }
+  updateMassCopyButton();
+}
+
+function updateMassCopyButton() {
+  var btn = document.getElementById('mc-copybtn');
+  if (btn) {
+    btn.textContent = 'Copy Selected (' + selectedFiles.size + ')';
+    btn.disabled = selectedFiles.size === 0;
+  }
+}
+
+function toggleSelectAll() {
+  var allChecks = document.querySelectorAll('.t-check input');
+  var allSelected = true;
+  for (var i = 0; i < allChecks.length; i++) {
+    if (!allChecks[i].checked) { allSelected = false; break; }
+  }
+  allChecks.forEach(function(cb) {
+    var path = cb.dataset.path;
+    cb.checked = !allSelected;
+    if (cb.checked) {
+      selectedFiles.add(path);
+    } else {
+      selectedFiles.delete(path);
+    }
+  });
+  updateMassCopyButton();
+  var btn = document.getElementById('mc-selectall');
+  if (btn) btn.textContent = !allSelected ? 'Deselect All' : 'Select All';
+}
+
+async function performMassCopy() {
+  if (selectedFiles.size === 0) { toast('No files selected', 'bad'); return; }
+  var btn = document.getElementById('mc-copybtn');
+  var originalText = btn.textContent;
+  btn.textContent = 'Fetching...'; btn.disabled = true;
+  var paths = Array.from(selectedFiles);
+  var parts = [];
+  var binExts = ['png','jpg','jpeg','gif','ico','woff','woff2','ttf','mp3','mp4','zip','pdf'];
+  try {
+    for (var i = 0; i < paths.length; i++) {
+      var path = paths[i];
+      btn.textContent = 'Fetching ' + (i + 1) + '/' + paths.length + '...';
+      var ext = path.split('.').pop().toLowerCase();
+      if (binExts.indexOf(ext) !== -1) {
+        parts.push('// ========================================\n// FILE: ' + path + '\n// ========================================\n\n[Binary file - content not shown]');
+        continue;
+      }
+      var d = await api({ action: getAction('get'), path: path });
+      var text = b64Decode(d.content);
+      parts.push('// ========================================\n// FILE: ' + path + '\n// ========================================\n\n' + text);
+    }
+    var output = parts.join('\n\n');
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(output);
+      toast('Copied ' + paths.length + ' file' + (paths.length > 1 ? 's' : '') + '!', 'ok');
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = output; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta); toast('Copied ' + paths.length + ' file' + (paths.length > 1 ? 's' : '') + '!', 'ok');
+    }
+    toggleMassCopyMode();
+  } catch(e) {
+    toast('Error: ' + e.message, 'bad');
+  }
+  btn.textContent = originalText; btn.disabled = false;
+  updateMassCopyButton();
+}
 
 // ── PWA ───────────────────────────────────────────────────────────────────
 (function setupPWA() {
