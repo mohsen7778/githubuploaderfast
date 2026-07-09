@@ -669,11 +669,13 @@ function renderLevel(obj, el) {
       + '<span class="t-name">' + name + '</span>'
       + (isDir ? '<span class="t-chevron">&#x203A;</span>' : '');
     el.appendChild(row);
-    if (!isDir && massCopyMode) {
+    if (!isDir) {
       var cb = row.querySelector('.t-check input');
-      cb.dataset.path = node._path;
-      cb.checked = selectedFiles.has(node._path);
-      cb.onchange = function() { toggleFileCheck(node._path, this); };
+      if (cb) {
+        cb.dataset.path = node._path;
+        cb.checked = selectedFiles.has(node._path);
+        cb.onchange = function() { toggleFileCheck(node._path, this); };
+      }
     }
     if (isDir) {
       var kids = document.createElement('div');
