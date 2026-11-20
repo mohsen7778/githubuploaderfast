@@ -170,12 +170,12 @@ body::after{width:260px;height:260px;background:rgba(100,223,223,0.08);bottom:-7
 .sheet{background:#10121E;border-radius:26px 26px 0 0;border-top:1px solid var(--border);padding:14px 18px 26px;padding-bottom:calc(26px + env(safe-area-inset-bottom,0px));max-height:92dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:0 -12px 48px rgba(0,0,0,0.7)}
 .sheet-drag{width:40px;height:4px;background:rgba(255,255,255,0.14);border-radius:2px;margin:0 auto 18px}
 .sheet-title{font-size:19px;font-weight:800;color:#FFFFFF;margin-bottom:16px;letter-spacing:-0.3px}
-.f-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--dim);margin-bottom:7px;margin-top:16px;display:flex;align-items:center;justify-content:space-between}
+.f-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--dim);margin-bottom:7px;margin-top:14px;display:flex;align-items:center;justify-content:space-between}
 .f-label:first-of-type{margin-top:0}
 .f-input{width:100%;background:var(--s3);border:1px solid var(--border);border-radius:13px;padding:13px 14px;font-family:var(--mono);font-size:13.5px;color:var(--cream);outline:none;transition:border-color 0.2s}
 .f-input:focus{border-color:var(--pink)}
 .f-input::placeholder{color:var(--dim);font-family:var(--sans);font-size:13px}
-.f-textarea{width:100%;min-height:150px;background:var(--s3);border:1px solid var(--border);border-radius:13px;padding:13px 14px;font-family:var(--mono);font-size:12px;line-height:1.65;color:var(--cream);resize:vertical;outline:none;transition:border-color 0.2s}
+.f-textarea{width:100%;min-height:140px;background:var(--s3);border:1px solid var(--border);border-radius:13px;padding:13px 14px;font-family:var(--mono);font-size:12px;line-height:1.65;color:var(--cream);resize:vertical;outline:none;transition:border-color 0.2s}
 .f-textarea:focus{border-color:var(--pink)}
 .f-textarea::placeholder{font-family:var(--sans);font-size:13px;color:var(--dim)}
 .mode-row{display:flex;gap:8px;margin-bottom:16px}
@@ -183,13 +183,21 @@ body::after{width:260px;height:260px;background:rgba(100,223,223,0.08);bottom:-7
 .mode-btn.on{border-color:var(--pink);background:rgba(255,107,157,0.12);color:var(--pink)}
 
 /* PATCH SHEET EXTRAS */
+.prompt-box{background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.24);border-radius:14px;padding:10px 12px;margin-bottom:14px}
+.prompt-box-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;font-size:11px;font-weight:700;color:var(--warn);text-transform:uppercase;letter-spacing:0.8px}
+.prompt-box-code{font-family:var(--mono);font-size:10.5px;line-height:1.45;color:var(--cream);opacity:0.85;white-space:pre-wrap;word-break:break-word;max-height:84px;overflow-y:auto;background:rgba(0,0,0,0.25);padding:8px 10px;border-radius:9px}
 .patch-status-card{background:var(--s2);border:1px solid var(--border);border-radius:14px;padding:12px;margin-top:12px;font-size:12.5px}
+.patch-status-card.has-error{border-color:rgba(251,113,133,0.45);background:rgba(251,113,133,0.06)}
 .patch-summary{display:flex;align-items:center;justify-content:space-between;font-weight:700;color:var(--teal);margin-bottom:6px}
-.patch-file-list{display:flex;flex-direction:column;gap:5px;max-height:150px;overflow-y:auto}
-.patch-file-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 9px;background:rgba(255,255,255,0.03);border-radius:9px;font-family:var(--mono);font-size:11.5px}
+.patch-status-card.has-error .patch-summary{color:var(--error)}
+.patch-file-list{display:flex;flex-direction:column;gap:5px;max-height:165px;overflow-y:auto}
+.patch-file-row{display:flex;flex-direction:column;gap:3px;padding:7px 9px;background:rgba(255,255,255,0.03);border-radius:9px;font-family:var(--mono);font-size:11.5px}
+.patch-file-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .patch-file-path{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--cream)}
-.patch-badge{font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:6px;flex-shrink:0}
+.patch-file-err{font-size:10.5px;color:var(--error);font-family:var(--sans);line-height:1.35}
+.patch-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;flex-shrink:0}
 .patch-badge.ready{background:rgba(100,223,223,0.14);color:var(--teal)}
+.patch-badge.newfile{background:rgba(251,191,36,0.16);color:var(--warn)}
 .patch-badge.ok{background:rgba(74,222,128,0.16);color:var(--success)}
 .patch-badge.err{background:rgba(251,113,133,0.16);color:var(--error)}
 .mini-pill-btn{background:var(--s3);border:1px solid var(--border);border-radius:8px;padding:4px 9px;font-size:11px;font-weight:700;color:var(--cream);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
@@ -468,14 +476,23 @@ body::after{width:260px;height:260px;background:rgba(100,223,223,0.08);bottom:-7
 <div class="sheet-bg hidden" id="patch-sheet-bg">
   <div class="sheet" onclick="event.stopPropagation()">
     <div class="sheet-drag"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
       <div class="sheet-title" style="margin-bottom:0">Apply AI Patch</div>
-      <button class="mini-pill-btn warn" onclick="copyAiPatchPrompt()" title="Copy universal prompt to give AI">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-        </svg>
-        Copy AI Prompt
-      </button>
+      <span style="font-size:11px;font-weight:700;color:var(--teal);background:rgba(100,223,223,0.1);border:1px solid var(--border-teal);padding:3px 8px;border-radius:8px">Safe Validator ON</span>
+    </div>
+
+    <!-- ALWAYS-AVAILABLE UNIVERSAL PROMPT BOX -->
+    <div class="prompt-box">
+      <div class="prompt-box-head">
+        <span>Universal AI Prompt (Give to AI first)</span>
+        <button class="mini-pill-btn warn" onclick="copyAiPatchPrompt()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          Copy Prompt
+        </button>
+      </div>
+      <div class="prompt-box-code" id="prompt-preview-text" onclick="copyAiPatchPrompt()"></div>
     </div>
 
     <div class="f-label">
@@ -485,12 +502,12 @@ body::after{width:260px;height:260px;background:rgba(100,223,223,0.08);bottom:-7
         <button class="mini-pill-btn red" onclick="clearPatchInput()">Clear</button>
       </span>
     </div>
-    <textarea class="f-textarea" id="patch-input" placeholder="FILE: index.html&#10;<<<<<<< SEARCH&#10;old code&#10;=======&#10;new code&#10;>>>>>>> REPLACE" oninput="previewParsedPatch()"></textarea>
+    <textarea class="f-textarea" id="patch-input" placeholder="FILE: index.html&#10;<<<<<<< SEARCH&#10;old code&#10;=======&#10;new code&#10;>>>>>>> REPLACE&#10;&#10;FILE: utils/helper.js (NEW)&#10;export function hi() { return 1; }" oninput="previewParsedPatch()"></textarea>
 
     <div class="patch-status-card hidden" id="patch-preview-card">
       <div class="patch-summary">
         <span id="patch-summary-text">0 files detected</span>
-        <span id="patch-hunks-text" style="font-family:var(--mono);font-size:11px;color:var(--dim)">0 blocks</span>
+        <span id="patch-hunks-text" style="font-family:var(--mono);font-size:11px;opacity:0.8">0 blocks</span>
       </div>
       <div class="patch-file-list" id="patch-file-list"></div>
     </div>
@@ -498,11 +515,11 @@ body::after{width:260px;height:260px;background:rgba(100,223,223,0.08);bottom:-7
     <div class="f-label">Commit message (optional)</div>
     <input type="text" class="f-input" id="patch-msg" placeholder="Apply AI multi-file patch">
 
-    <button class="btn-pink" style="margin-top:18px" id="patch-apply-btn" onclick="applyAllPatches()" disabled>
+    <button class="btn-pink" style="margin-top:16px" id="patch-apply-btn" onclick="applyAllPatches()" disabled>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
         <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
       </svg>
-      <span id="patch-apply-text">Apply &amp; Commit Patches</span>
+      <span id="patch-apply-text">Validate &amp; Apply Patches</span>
     </button>
   </div>
 </div>
@@ -645,7 +662,22 @@ var massCopyMode = false;
 var selectedFiles = new Set();
 
 // Universal AI Patch Prompt
-var UNIVERSAL_PATCH_PROMPT = 'Output ONLY code patches using this exact format for every modified file (do not output full files):\nFILE: path/to/file\n<<<<<<< SEARCH\nexact lines to find\n=======\nreplacement lines\n>>>>>>> REPLACE';
+var UNIVERSAL_PATCH_PROMPT = [
+  'Output ONLY code patches inside ONE fenced code block (do not output full files). Put FILE:, <<<<<<< SEARCH, =======, and >>>>>>> REPLACE each on their own separate lines, preserving exact newlines and indentation. For brand-new files append (NEW) to FILE:',
+  '',
+  'FILE: path/to/existing.js',
+  '<<<<<<< SEARCH',
+  'exact lines to find',
+  '=======',
+  'replacement lines',
+  '>>>>>>> REPLACE',
+  '',
+  'FILE: path/to/new-file.js (NEW)',
+  '<<<<<<< SEARCH',
+  '=======',
+  'full new file code',
+  '>>>>>>> REPLACE'
+].join('\n');
 
 function getAction(name) {
   return currentMode === 'github' ? name : 'hf_' + name;
@@ -658,6 +690,8 @@ function getCurrentRepo() {
 // ── INIT ──────────────────────────────────────────────────────────────────
 (function init() {
   positionFab();
+  var promptEl = document.getElementById('prompt-preview-text');
+  if (promptEl) promptEl.textContent = UNIVERSAL_PATCH_PROMPT;
   var pw = localStorage.getItem(K_PW);
   if (pw) { bootApp(); return; }
   document.getElementById('auth-pw').addEventListener('keydown', function(e) {
@@ -1122,7 +1156,7 @@ function showBar(mode) {
   document.getElementById('bar-edit').classList.toggle('hidden', mode !== 'edit');
 }
 
-// ── AUTO MULTI-FILE PATCHER ───────────────────────────────────────────────
+// ── AUTO MULTI-FILE PATCHER & VALIDATOR ───────────────────────────────────
 function openPatchSheet() {
   if (!getCurrentRepo()) { toast('Set a repo first', 'bad'); return; }
   clearPatchInput();
@@ -1158,32 +1192,59 @@ async function pastePatchInput() {
 
 function clearPatchInput() {
   document.getElementById('patch-input').value = '';
-  document.getElementById('patch-preview-card').classList.add('hidden');
+  var card = document.getElementById('patch-preview-card');
+  card.classList.add('hidden');
+  card.classList.remove('has-error');
   document.getElementById('patch-file-list').innerHTML = '';
   var btn = document.getElementById('patch-apply-btn');
   btn.disabled = true;
-  document.getElementById('patch-apply-text').textContent = 'Apply & Commit Patches';
+  document.getElementById('patch-apply-text').textContent = 'Validate & Apply Patches';
+}
+
+function stripOuterCodeFences(rawText) {
+  var t = normNL(rawText || '').trim();
+  if (/^```[a-zA-Z0-9_-]*\n/.test(t) && /\n```$/.test(t)) {
+    t = t.replace(/^```[a-zA-Z0-9_-]*\n/, '').replace(/\n```$/, '');
+  }
+  return t;
 }
 
 function parseUniversalPatches(rawText) {
-  var text = normNL(rawText || '');
+  var text = stripOuterCodeFences(rawText);
   var lines = text.split('\n');
   var filesMap = {};
   var fileOrder = [];
   var currentFile = null;
+  var syntaxErrors = [];
 
   var i = 0;
   while (i < lines.length) {
     var line = lines[i];
     var trimmed = line.trim();
 
-    // Detect FILE: header (supports optional markdown bold/backticks/comments like `FILE: path` or **FILE:** path or // FILE: path)
+    // Ignore markdown fence lines if AI emitted multiple fenced blocks
+    if (/^```/.test(trimmed)) {
+      i++;
+      continue;
+    }
+
+    // Detect FILE: header with optional (NEW) tag
     var fileMatch = trimmed.match(/^(?:\/\/\s*|#\s*|\*\*)?FILE\s*:\s*`?([^`\*\r\n]+?)`?(?:\*\*)?$/i);
     if (fileMatch) {
-      currentFile = fileMatch[1].trim();
+      var rawHeader = fileMatch[1].trim();
+      var isNew = /\(\s*NEW\s*\)$/i.test(rawHeader);
+      var cleanPath = rawHeader.replace(/\s*\(\s*NEW\s*\)$/i, '').trim();
+
+      if (!cleanPath || cleanPath.indexOf('..') !== -1 || cleanPath.startsWith('/')) {
+        syntaxErrors.push('Invalid file path: ' + rawHeader);
+      }
+
+      currentFile = cleanPath;
       if (!filesMap[currentFile]) {
-        filesMap[currentFile] = [];
+        filesMap[currentFile] = { path: currentFile, isNew: isNew, hunks: [], rawNewLines: [] };
         fileOrder.push(currentFile);
+      } else if (isNew) {
+        filesMap[currentFile].isNew = true;
       }
       i++;
       continue;
@@ -1191,41 +1252,76 @@ function parseUniversalPatches(rawText) {
 
     // Detect <<<<<<< SEARCH block
     if (/^<<<<<<<\s*SEARCH\s*$/i.test(trimmed)) {
+      if (!currentFile && !curFile) {
+        syntaxErrors.push('Found <<<<<<< SEARCH without a FILE: header on line ' + (i + 1));
+      }
+      var target = currentFile || curFile;
       i++;
       var searchLines = [];
       while (i < lines.length && !/^=======\s*$/.test(lines[i].trim())) {
+        if (/^>>>>>>>\s*REPLACE\s*$/i.test(lines[i].trim()) || /^<<<<<<<\s*SEARCH\s*$/i.test(lines[i].trim())) {
+          syntaxErrors.push('Missing ======= separator in ' + (target || 'patch') + ' near line ' + (i + 1));
+          break;
+        }
         searchLines.push(lines[i]);
         i++;
       }
-      if (i >= lines.length) break; // unclosed SEARCH
+      if (i >= lines.length || !/^=======\s*$/.test(lines[i].trim())) {
+        syntaxErrors.push('Unclosed <<<<<<< SEARCH block in ' + (target || 'patch'));
+        break;
+      }
       i++; // skip =======
       var replaceLines = [];
       while (i < lines.length && !/^>>>>>>>\s*REPLACE\s*$/i.test(lines[i].trim())) {
+        if (/^<<<<<<<\s*SEARCH\s*$/i.test(lines[i].trim())) {
+          syntaxErrors.push('Missing >>>>>>> REPLACE marker in ' + (target || 'patch') + ' near line ' + (i + 1));
+          break;
+        }
         replaceLines.push(lines[i]);
         i++;
       }
-      if (i >= lines.length) break; // unclosed REPLACE
+      if (i >= lines.length || !/^>>>>>>>\s*REPLACE\s*$/i.test(lines[i].trim())) {
+        syntaxErrors.push('Unclosed >>>>>>> REPLACE block in ' + (target || 'patch'));
+        break;
+      }
       i++; // skip >>>>>>> REPLACE
 
-      var target = currentFile || (curFile ? curFile : null);
       if (target) {
         if (!filesMap[target]) {
-          filesMap[target] = [];
+          filesMap[target] = { path: target, isNew: false, hunks: [], rawNewLines: [] };
           fileOrder.push(target);
         }
-        filesMap[target].push({
+        filesMap[target].hunks.push({
           search: searchLines.join('\n'),
           replace: replaceLines.join('\n')
         });
       }
       continue;
     }
+
+    // If currentFile is marked (NEW) and AI wrote raw file content directly without SEARCH/REPLACE markers
+    if (currentFile && filesMap[currentFile].isNew && filesMap[currentFile].hunks.length === 0) {
+      filesMap[currentFile].rawNewLines.push(line);
+    }
     i++;
   }
 
-  return fileOrder.map(function(path) {
-    return { path: path, hunks: filesMap[path] };
-  }).filter(function(f) { return f.hunks.length > 0; });
+  // Finalize files
+  var files = fileOrder.map(function(p) {
+    var entry = filesMap[p];
+    if (entry.isNew && entry.hunks.length === 0) {
+      var rawBody = entry.rawNewLines.join('\n').replace(/^\n+|\n+$/g, '');
+      if (rawBody) {
+        entry.hunks.push({ search: '', replace: rawBody });
+      }
+    }
+    if (!entry.hunks.length) {
+      syntaxErrors.push('No valid patch block found for ' + p);
+    }
+    return { path: entry.path, isNew: entry.isNew, hunks: entry.hunks };
+  });
+
+  return { files: files, syntaxErrors: syntaxErrors };
 }
 
 function previewParsedPatch() {
@@ -1236,47 +1332,159 @@ function previewParsedPatch() {
   var btn  = document.getElementById('patch-apply-btn');
   var btnTxt = document.getElementById('patch-apply-text');
 
-  if (!parsed.length) {
+  if (!raw.trim()) {
     card.classList.add('hidden');
+    card.classList.remove('has-error');
     btn.disabled = true;
-    btnTxt.textContent = 'Apply & Commit Patches';
+    btnTxt.textContent = 'Validate & Apply Patches';
     return;
   }
 
-  var totalHunks = parsed.reduce(function(acc, f) { return acc + f.hunks.length; }, 0);
-  document.getElementById('patch-summary-text').textContent = parsed.length + ' file' + (parsed.length > 1 ? 's' : '') + ' targeted';
-  document.getElementById('patch-hunks-text').textContent = totalHunks + ' patch block' + (totalHunks > 1 ? 's' : '');
-
   list.innerHTML = '';
-  parsed.forEach(function(item, idx) {
+
+  if (parsed.syntaxErrors.length > 0) {
+    card.classList.remove('hidden');
+    card.classList.add('has-error');
+    document.getElementById('patch-summary-text').textContent = 'Invalid Patch Format';
+    document.getElementById('patch-hunks-text').textContent = parsed.syntaxErrors.length + ' issue' + (parsed.syntaxErrors.length > 1 ? 's' : '');
+    parsed.syntaxErrors.forEach(function(err) {
+      var row = document.createElement('div');
+      row.className = 'patch-file-row';
+      row.innerHTML = '<div class="patch-file-err">' + err + '</div>';
+      list.appendChild(row);
+    });
+    btn.disabled = true;
+    btnTxt.textContent = 'Fix Patch Format First';
+    return;
+  }
+
+  if (!parsed.files.length) {
+    card.classList.remove('hidden');
+    card.classList.add('has-error');
+    document.getElementById('patch-summary-text').textContent = 'No FILE: headers found';
+    document.getElementById('patch-hunks-text').textContent = '0 blocks';
+    btn.disabled = true;
+    btnTxt.textContent = 'Invalid Patch';
+    return;
+  }
+
+  card.classList.remove('hidden');
+  card.classList.remove('has-error');
+  var totalHunks = parsed.files.reduce(function(acc, f) { return acc + f.hunks.length; }, 0);
+  document.getElementById('patch-summary-text').textContent = parsed.files.length + ' file' + (parsed.files.length > 1 ? 's' : '') + ' ready';
+  document.getElementById('patch-hunks-text').textContent = totalHunks + ' block' + (totalHunks > 1 ? 's' : '');
+
+  parsed.files.forEach(function(item, idx) {
     var row = document.createElement('div');
     row.className = 'patch-file-row';
     row.id = 'patch-row-' + idx;
-    row.innerHTML = '<span class="patch-file-path">' + item.path + '</span>'
-      + '<span class="patch-badge ready" id="patch-badge-' + idx + '">' + item.hunks.length + ' block' + (item.hunks.length > 1 ? 's' : '') + '</span>';
+    var badgeClass = item.isNew ? 'newfile' : 'ready';
+    var badgeLabel = item.isNew ? 'NEW FILE' : (item.hunks.length + ' block' + (item.hunks.length > 1 ? 's' : ''));
+    row.innerHTML = '<div class="patch-file-top">'
+      + '<span class="patch-file-path">' + item.path + '</span>'
+      + '<span class="patch-badge ' + badgeClass + '" id="patch-badge-' + idx + '">' + badgeLabel + '</span>'
+      + '</div>'
+      + '<div class="patch-file-err hidden" id="patch-err-' + idx + '"></div>';
     list.appendChild(row);
   });
 
-  card.classList.remove('hidden');
   btn.disabled = false;
-  btnTxt.textContent = 'Apply & Commit (' + parsed.length + ' file' + (parsed.length > 1 ? 's' : '') + ')';
+  btnTxt.textContent = 'Validate & Apply (' + parsed.files.length + ' file' + (parsed.files.length > 1 ? 's' : '') + ')';
 }
 
-function applyHunksToContent(originalText, hunks) {
+function validateFileIntegrity(filePath, code) {
+  if (!code || !code.trim()) {
+    return 'Resulting file would be empty';
+  }
+  var ext = filePath.split('.').pop().toLowerCase();
+
+  if (ext === 'json') {
+    try { JSON.parse(code); }
+    catch(e) { return 'Broken JSON: ' + e.message; }
+    return null;
+  }
+
+  // Delimiter & bracket balance check for JS/TS/CSS/HTML
+  if (['js','jsx','ts','tsx','css','html'].indexOf(ext) !== -1) {
+    var stack = [];
+    var pairs = { '{': '}', '[': ']', '(': ')' };
+    var closers = { '}': '{', ']': '[', ')': '(' };
+    var inSingle = false, inDouble = false, inTemplate = false, inLineComment = false, inBlockComment = false;
+
+    for (var i = 0; i < code.length; i++) {
+      var ch = code[i];
+      var next = code[i + 1] || '';
+
+      if (inLineComment) {
+        if (ch === '\n') inLineComment = false;
+        continue;
+      }
+      if (inBlockComment) {
+        if (ch === '*' && next === '/') { inBlockComment = false; i++; }
+        continue;
+      }
+      if (inSingle) {
+        if (ch === '\\') { i++; continue; }
+        if (ch === "'") inSingle = false;
+        continue;
+      }
+      if (inDouble) {
+        if (ch === '\\') { i++; continue; }
+        if (ch === '"') inDouble = false;
+        continue;
+      }
+      if (inTemplate) {
+        if (ch === '\\') { i++; continue; }
+        if (ch === '`') inTemplate = false;
+        continue;
+      }
+
+      if (ch === '/' && next === '/') { inLineComment = true; i++; continue; }
+      if (ch === '/' && next === '*') { inBlockComment = true; i++; continue; }
+      if (ch === "'") { inSingle = true; continue; }
+      if (ch === '"') { inDouble = true; continue; }
+      if (ch === '`' && ext !== 'css' && ext !== 'html') { inTemplate = true; continue; }
+
+      if (pairs[ch]) {
+        stack.push(ch);
+      } else if (closers[ch]) {
+        var top = stack.pop();
+        if (top !== closers[ch]) {
+          return 'Syntax error: unmatched "' + ch + '" detected';
+        }
+      }
+    }
+
+    if (inSingle || inDouble || inTemplate) {
+      return 'Syntax error: unclosed string literal';
+    }
+    if (inBlockComment) {
+      return 'Syntax error: unclosed /* comment */';
+    }
+    if (stack.length > 0 && ext !== 'html') {
+      return 'Syntax error: unclosed "' + stack[stack.length - 1] + '"';
+    }
+  }
+  return null;
+}
+
+function applyHunksToContent(originalText, hunks, isNew) {
+  if (isNew) {
+    var combined = hunks.map(function(h) { return h.replace; }).join('\n');
+    return normNL(combined);
+  }
   var content = normNL(originalText);
   for (var h = 0; h < hunks.length; h++) {
     var search = hunks[h].search;
     var replace = hunks[h].replace;
 
     if (search === '') {
-      // Empty SEARCH block appends to end of file
-      content = content + (content.endsWith('\n') ? '' : '\n') + replace;
-      continue;
+      throw new Error('Block #' + (h + 1) + ' has empty SEARCH (use (NEW) for new files)');
     }
 
     var idx = content.indexOf(search);
     if (idx === -1) {
-      // Fallback: trim trailing whitespace per line for resilient matching
+      // Fallback: ignore trailing whitespace per line
       var normSearch = search.split('\n').map(function(l) { return l.replace(/\s+$/, ''); }).join('\n');
       var contentLines = content.split('\n');
       var searchLines = normSearch.split('\n');
@@ -1292,7 +1500,7 @@ function applyHunksToContent(originalText, hunks) {
         if (match) { foundLine = i; break; }
       }
       if (foundLine === -1) {
-        throw new Error('Block #' + (h + 1) + ' did not match exact code');
+        throw new Error('Block #' + (h + 1) + ' did not match existing file code');
       }
       contentLines.splice(foundLine, searchLines.length, replace);
       content = contentLines.join('\n');
@@ -1306,62 +1514,126 @@ function applyHunksToContent(originalText, hunks) {
 async function applyAllPatches() {
   var raw = document.getElementById('patch-input').value;
   var parsed = parseUniversalPatches(raw);
-  if (!parsed.length) { toast('No valid patches detected', 'bad'); return; }
+  if (parsed.syntaxErrors.length || !parsed.files.length) {
+    toast('Patch has syntax errors — nothing applied', 'bad');
+    return;
+  }
 
   var customMsg = document.getElementById('patch-msg').value.trim();
   var btn = document.getElementById('patch-apply-btn');
   var btnTxt = document.getElementById('patch-apply-text');
+  var card = document.getElementById('patch-preview-card');
   btn.disabled = true;
+  card.classList.remove('has-error');
 
-  var successCount = 0;
-  var failCount = 0;
+  // ── PHASE 1: DRY-RUN FETCH & VALIDATE ALL FILES BEFORE COMMITTING ANYTHING ──
+  var prepared = [];
+  var validationFailed = false;
 
-  for (var i = 0; i < parsed.length; i++) {
-    var item = parsed[i];
+  for (var i = 0; i < parsed.files.length; i++) {
+    var item = parsed.files[i];
     var badge = document.getElementById('patch-badge-' + i);
-    btnTxt.textContent = 'Patching ' + (i + 1) + '/' + parsed.length + '...';
-    if (badge) { badge.textContent = 'Fetching...'; badge.className = 'patch-badge ready'; }
+    var errEl = document.getElementById('patch-err-' + i);
+    if (errEl) { errEl.classList.add('hidden'); errEl.textContent = ''; }
+
+    btnTxt.textContent = 'Validating ' + (i + 1) + '/' + parsed.files.length + '...';
+    if (badge) { badge.textContent = 'Checking...'; badge.className = 'patch-badge ready'; }
 
     try {
-      var fileData = await api({ action: getAction('get'), path: item.path });
-      var currentCode = b64Decode(fileData.content);
-      var patchedCode = applyHunksToContent(currentCode, item.hunks);
+      var existingCode = '';
+      var existingSha = null;
 
-      if (badge) badge.textContent = 'Committing...';
-      var commitMsg = customMsg || ('Patch: ' + item.path + ' (' + item.hunks.length + ' block' + (item.hunks.length > 1 ? 's' : '') + ')');
+      if (item.isNew) {
+        // Verify new file does not accidentally overwrite an existing file
+        try {
+          var checkExist = await api({ action: getAction('get'), path: item.path });
+          if (checkExist && checkExist.content) {
+            throw new Error('File already exists (remove (NEW) to patch it)');
+          }
+        } catch(fetchErr) {
+          if (fetchErr.message && fetchErr.message.indexOf('already exists') !== -1) throw fetchErr;
+          // 404 / not found is expected for a brand-new file
+        }
+      } else {
+        var fileData = await api({ action: getAction('get'), path: item.path });
+        existingCode = b64Decode(fileData.content);
+        existingSha = fileData.sha;
+      }
 
+      var candidateCode = applyHunksToContent(existingCode, item.hunks, item.isNew);
+      var syntaxIssue = validateFileIntegrity(item.path, candidateCode);
+      if (syntaxIssue) {
+        throw new Error(syntaxIssue);
+      }
+
+      prepared.push({
+        idx: i,
+        path: item.path,
+        isNew: item.isNew,
+        hunksCount: item.hunks.length,
+        code: candidateCode,
+        sha: existingSha
+      });
+      if (badge) { badge.textContent = 'Valid'; badge.className = 'patch-badge ok'; }
+    } catch(e) {
+      validationFailed = true;
+      if (badge) { badge.textContent = 'Blocked'; badge.className = 'patch-badge err'; }
+      if (errEl) { errEl.textContent = e.message; errEl.classList.remove('hidden'); }
+    }
+  }
+
+  // Abort everything if ANY file failed validation
+  if (validationFailed) {
+    card.classList.add('has-error');
+    document.getElementById('patch-summary-text').textContent = 'Validation Failed — 0 Files Changed';
+    btn.disabled = false;
+    btnTxt.textContent = 'Re-Validate & Apply';
+    toast('Blocked: patch error found (no files modified)', 'bad');
+    return;
+  }
+
+  // ── PHASE 2: ALL FILES PASSED VALIDATION — COMMIT SAFELY ──
+  var createdAnyNew = false;
+  for (var k = 0; k < prepared.length; k++) {
+    var job = prepared[k];
+    var b = document.getElementById('patch-badge-' + job.idx);
+    btnTxt.textContent = 'Committing ' + (k + 1) + '/' + prepared.length + '...';
+    if (b) b.textContent = 'Pushing...';
+
+    var commitMsg = customMsg || (job.isNew
+      ? ('Create ' + job.path)
+      : ('Patch ' + job.path + ' (' + job.hunksCount + ' block' + (job.hunksCount > 1 ? 's' : '') + ')'));
+
+    try {
       await api({
         action: getAction('upload'),
-        path: item.path,
-        content: patchedCode,
+        path: job.path,
+        content: job.code,
         message: commitMsg,
-        sha: fileData.sha
+        ...(job.sha ? { sha: job.sha } : {})
       });
+      if (b) { b.textContent = job.isNew ? 'Created' : 'Patched'; b.className = 'patch-badge ok'; }
+      if (job.isNew) createdAnyNew = true;
 
-      if (badge) { badge.textContent = 'Patched'; badge.className = 'patch-badge ok'; }
-      successCount++;
-
-      // If currently viewing this file, update editor/viewer live
-      if (curFile === item.path) {
-        document.getElementById('fv-textarea').value = patchedCode;
-        document.getElementById('fv-code').textContent = patchedCode;
-        updateLineCount(patchedCode);
+      if (curFile === job.path) {
+        document.getElementById('fv-textarea').value = job.code;
+        document.getElementById('fv-code').textContent = job.code;
+        updateLineCount(job.code);
       }
-    } catch(e) {
-      failCount++;
-      if (badge) { badge.textContent = e.message; badge.className = 'patch-badge err'; }
+    } catch(pushErr) {
+      if (b) { b.textContent = 'Push Error'; b.className = 'patch-badge err'; }
+      toast('Error pushing ' + job.path + ': ' + pushErr.message, 'bad');
+      btn.disabled = false;
+      btnTxt.textContent = 'Validate & Apply Patches';
+      return;
     }
   }
 
   btn.disabled = false;
-  btnTxt.textContent = 'Apply & Commit Patches';
-
-  if (failCount === 0) {
-    toast('Patched ' + successCount + ' file' + (successCount > 1 ? 's' : '') + '!', 'ok');
-    setTimeout(function() { closeSheet('patch-sheet-bg'); }, 700);
-  } else {
-    toast('Patched ' + successCount + ', failed ' + failCount, 'bad');
-  }
+  btnTxt.textContent = 'Validate & Apply Patches';
+  toast('Safely applied ' + prepared.length + ' file' + (prepared.length > 1 ? 's' : '') + '!', 'ok');
+  if (createdAnyNew) loadTree();
+  setTimeout(function() { closeSheet('patch-sheet-bg'); }, 750);
 }
 
 // ── APPEND SHEET ──────────────────────────────────────────────────────────
