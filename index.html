@@ -502,13 +502,13 @@ body::after{width:260px;height:260px;background:rgba(100,223,223,0.08);bottom:-7
     </div>
 
     <div class="f-label">
-      <span>Paste Patch (Replace / Insert / New)</span>
+      <span>Paste Patch (Replace / Insert / Delete / New)</span>
       <span style="display:flex;gap:6px">
         <button class="mini-pill-btn green" onclick="pastePatchInput()">Paste</button>
         <button class="mini-pill-btn red" onclick="clearPatchInput()">Clear</button>
       </span>
     </div>
-    <textarea class="f-textarea" id="patch-input" placeholder="FILE: index.html&#10;<<<<<<< SEARCH&#10;exact old lines&#10;=======&#10;new lines&#10;>>>>>>> REPLACE&#10;&#10;Or targeted insert:&#10;FILE: app.py&#10;<<<<<<< INSERT_AFTER&#10;anchor line&#10;=======&#10;new lines&#10;>>>>>>> INSERT" oninput="onPatchInputChanged()"></textarea>
+    <textarea class="f-textarea" id="patch-input" placeholder="FILE: index.html&#10;<<<<<<< SEARCH&#10;exact old lines&#10;=======&#10;new lines&#10;>>>>>>> REPLACE&#10;&#10;Or targeted insert:&#10;FILE: app.py&#10;<<<<<<< INSERT_AFTER&#10;anchor line&#10;=======&#10;new lines&#10;>>>>>>> INSERT&#10;&#10;Or remove code:&#10;FILE: app.py&#10;<<<<<<< DELETE&#10;@ lines 120-135&#10;exact lines to remove&#10;>>>>>>> DELETE" oninput="onPatchInputChanged()"></textarea>
 
     <div class="patch-status-card hidden" id="patch-preview-card">
       <div class="patch-summary">
@@ -698,6 +698,15 @@ var UNIVERSAL_PATCH_PROMPT = [
   '=======',
   'new lines to insert',
   '>>>>>>> INSERT',
+  '',
+  'To DELETE code that is no longer needed (pinpoint removal, whole lines, no ======= and no replacement):',
+  'FILE: path/to/file',
+  '<<<<<<< DELETE',
+  '@ lines 120-135',
+  'exact lines to remove, copied verbatim from the file',
+  '>>>>>>> DELETE',
+  '',
+  'DELETE rules: (1) copy the lines to remove EXACTLY, nothing more and nothing less; (2) the optional "@ lines START-END" (or "@ line N") hint on the first line pins the position - ALWAYS include it when the same code appears more than once; (3) if the snippet is not unique and has no hint the patch is rejected; (4) to delete AND replace, use SEARCH/REPLACE instead; (5) one DELETE block per contiguous region, several blocks per file allowed; (6) never delete lines that other code still references.',
   '',
   'To create a new file:',
   'FILE: path/to/newfile (NEW)',
@@ -1201,7 +1210,7 @@ async function copyShortFileMap(onlySelected) {
   showPcBubble('Building File Map...', 'Scanning ' + targetPaths.length + ' files', '');
   var mapLines = [
     '# SHORT FILE MAP (' + getCurrentRepo() + ')',
-    '# Use these symbols as anchors for FILE: / SEARCH / INSERT_AFTER patches:',
+    '# Use these symbols as anchors for FILE: / SEARCH / INSERT_AFTER / DELETE patches:',
     ''
   ];
 
@@ -1331,7 +1340,7 @@ function isSafeRepoPath(p) {
 function sanitizeRawPatchText(rawText) {
   var text = normNL(rawText || '');
   text = text.replace(/^\s*```[a-zA-Z0-9_-]*\s*\n/, '').replace(/\n```\s*$/, '');
-  text = text.replace(/^((?:\/\/\s*|#\s*|\*\*)?FILE\s*:\s*[^\n<]+?)[ \t]+(<{5,}[ \t]*(?:SEARCH|INSERT_AFTER|INSERT_BEFORE|INSERT|NEW_FILE)\b.*)$/gmi, '$1\n$2');
+  text = text.replace(/^((?:\/\/\s*|#\s*|\*\*)?FILE\s*:\s*[^\n<]+?)[ \t]+(<{5,}[ \t]*(?:SEARCH|DELETE|INSERT_AFTER|INSERT_BEFORE|INSERT|NEW_FILE)\b.*)$/gmi, '$1\n$2');
   return text;
 }
 
@@ -1374,13 +1383,14 @@ function parseUniversalPatches(rawText) {
       continue;
     }
 
-    var startMatch = trimmed.match(/^<{5,}[ \t]*(SEARCH|INSERT_AFTER|INSERT_BEFORE|INSERT|NEW_FILE)[ \t]*$/i);
+    var startMatch = trimmed.match(/^<{5,}[ \t]*(SEARCH|DELETE|INSERT_AFTER|INSERT_BEFORE|INSERT|NEW_FILE)[ \t]*$/i);
     if (startMatch) {
       var rawMode = startMatch[1].toUpperCase();
       var mode = 'replace';
       if (rawMode === 'INSERT_AFTER' || rawMode === 'INSERT') mode = 'insert_after';
       else if (rawMode === 'INSERT_BEFORE') mode = 'insert_before';
       else if (rawMode === 'NEW_FILE') mode = 'new_file';
+      else if (rawMode === 'DELETE') mode = 'delete';
 
       if (!currentFile) {
         ensureFile('(missing-file-header)', false);
@@ -1393,13 +1403,13 @@ function parseUniversalPatches(rawText) {
       var foundEnd = false;
       while (i < lines.length) {
         var t = lines[i].trim();
-        if (/^>{5,}[ \t]*(?:REPLACE|INSERT|NEW_FILE|END)[ \t]*$/i.test(t)) {
+        if (/^>{5,}[ \t]*(?:REPLACE|INSERT|DELETE|NEW_FILE|END)[ \t]*$/i.test(t)) {
           foundEnd = true;
           i++;
           break;
         }
         // Stop if another FILE: or <<<<<<< starts unexpectedly (unclosed block)
-        if (/^(?:\/\/\s*|#\s*|\*\*)?FILE\s*:/i.test(t) || /^<{5,}[ \t]*(?:SEARCH|INSERT_AFTER|INSERT_BEFORE|INSERT|NEW_FILE)\b/i.test(t)) {
+        if (/^(?:\/\/\s*|#\s*|\*\*)?FILE\s*:/i.test(t) || /^<{5,}[ \t]*(?:SEARCH|DELETE|INSERT_AFTER|INSERT_BEFORE|INSERT|NEW_FILE)\b/i.test(t)) {
           break;
         }
         blockLines.push(lines[i]);
@@ -1407,7 +1417,32 @@ function parseUniversalPatches(rawText) {
       }
 
       if (!foundEnd) {
-        filesMap[currentFile].parseErrors.push('Incomplete/truncated block (missing >>>>>>> REPLACE/INSERT end marker)');
+        filesMap[currentFile].parseErrors.push('Incomplete/truncated block (missing >>>>>>> REPLACE/INSERT/DELETE end marker)');
+        continue;
+      }
+
+      // Optional position hint on the first non-empty line: "@ line 120" / "@ lines 120-135" / "@ 120"
+      var lineHint = null;
+      var hintIdx = 0;
+      while (hintIdx < blockLines.length && !blockLines[hintIdx].trim()) hintIdx++;
+      if (hintIdx < blockLines.length) {
+        var hm = blockLines[hintIdx].trim().match(/^@\s*(?:lines?\s*)?(\d+)(?:\s*(?:-|\u2013|to)\s*(\d+))?\s*$/i);
+        if (hm) {
+          var hs = parseInt(hm[1], 10);
+          var he = hm[2] ? parseInt(hm[2], 10) : hs;
+          lineHint = { start: Math.min(hs, he), end: Math.max(hs, he) };
+          blockLines.splice(hintIdx, 1);
+        }
+      }
+
+      // DELETE: whole block body is the exact text to remove (no separator, no payload)
+      if (mode === 'delete') {
+        var delText = blockLines.join('\n');
+        if (delText.trim() === '') {
+          filesMap[currentFile].parseErrors.push('Empty DELETE block is not allowed (list the exact lines to remove)');
+          continue;
+        }
+        filesMap[currentFile].hunks.push({ mode: 'delete', search: delText, payload: '', lineHint: lineHint });
         continue;
       }
 
@@ -1442,7 +1477,8 @@ function parseUniversalPatches(rawText) {
         filesMap[currentFile].hunks.push({
           mode: mode,
           search: searchText,
-          payload: payloadText
+          payload: payloadText,
+          lineHint: lineHint
         });
       }
       continue;
@@ -1545,7 +1581,32 @@ function adaptIndent(payload, anchorFirstLine, searchFirstLine) {
 }
 
 // Line-boundary & uniqueness-enforced 4-tier locator
-function locateUniqueBlockInContent(content, search, blockNum) {
+function pickHit(hits, hint, blockNum) {
+  if (hits.length === 0) return null;
+  if (hits.length === 1) return hits[0];
+  var hintMsg = ' Add 2-3 context lines or an "@ line N" position hint.';
+  if (hint) {
+    var inRange = hits.filter(function(h) { return h.startLine >= hint.start && h.startLine <= hint.end; });
+    if (inRange.length === 1) return inRange[0];
+    if (inRange.length === 0) {
+      // Fall back to the single closest hit, but only if clearly closer than all others (within 5 lines)
+      var sorted = hits.slice().sort(function(a, b) {
+        return Math.abs(a.startLine - hint.start) - Math.abs(b.startLine - hint.start);
+      });
+      var d0 = Math.abs(sorted[0].startLine - hint.start);
+      var d1 = Math.abs(sorted[1].startLine - hint.start);
+      if (d0 <= 5 && d1 > d0 + 5) return sorted[0];
+    }
+    var e = new Error('Block #' + blockNum + ' matches ' + hits.length + ' places (lines ' + hits.map(function(h){return h.startLine;}).join(', ') + ') and the position hint did not isolate one.');
+    e.ambiguous = true;
+    throw e;
+  }
+  var e2 = new Error('Block #' + blockNum + ' matches ' + hits.length + ' places (lines ' + hits.map(function(h){return h.startLine;}).join(', ') + ').' + hintMsg);
+  e2.ambiguous = true;
+  throw e2;
+}
+
+function locateUniqueBlockInContent(content, search, blockNum, hint) {
   var contentLines = content.split('\n');
   var searchLines = search.split('\n');
 
@@ -1572,12 +1633,8 @@ function locateUniqueBlockInContent(content, search, blockNum) {
     }
     if (ok1) hits1.push(lineRangeToResult(i1, searchLines.length, 1));
   }
-  if (hits1.length === 1) return hits1[0];
-  if (hits1.length > 1) {
-    var err1 = new Error('Block #' + blockNum + ' matches ' + hits1.length + ' places (lines ' + hits1.map(function(h){return h.startLine;}).join(', ') + '). Add 2-3 context lines.');
-    err1.ambiguous = true;
-    throw err1;
-  }
+  var pick1 = pickHit(hits1, hint, blockNum);
+  if (pick1) return pick1;
 
   // Tier 2: Trailing whitespace ignored (line-aligned)
   var hits2 = [];
@@ -1588,12 +1645,8 @@ function locateUniqueBlockInContent(content, search, blockNum) {
     }
     if (ok2) hits2.push(lineRangeToResult(i2, searchLines.length, 2));
   }
-  if (hits2.length === 1) return hits2[0];
-  if (hits2.length > 1) {
-    var err2 = new Error('Block #' + blockNum + ' matches ' + hits2.length + ' places. Add more context lines.');
-    err2.ambiguous = true;
-    throw err2;
-  }
+  var pick2 = pickHit(hits2, hint, blockNum);
+  if (pick2) return pick2;
 
   // Tier 3: Indentation-agnostic line match
   var hits3 = [];
@@ -1604,12 +1657,8 @@ function locateUniqueBlockInContent(content, search, blockNum) {
     }
     if (ok3) hits3.push(lineRangeToResult(i3, searchLines.length, 3));
   }
-  if (hits3.length === 1) return hits3[0];
-  if (hits3.length > 1) {
-    var err3 = new Error('Block #' + blockNum + ' matches ' + hits3.length + ' places. Add more context lines.');
-    err3.ambiguous = true;
-    throw err3;
-  }
+  var pick3 = pickHit(hits3, hint, blockNum);
+  if (pick3) return pick3;
 
   // Tier 4: Whitespace-collapsed multi-line match
   var collapsedSearch = search.replace(/\s+/g, ' ').trim();
@@ -1629,12 +1678,8 @@ function locateUniqueBlockInContent(content, search, blockNum) {
       }
     }
   }
-  if (hits4.length === 1) return hits4[0];
-  if (hits4.length > 1) {
-    var err4 = new Error('Block #' + blockNum + ' matches ' + hits4.length + ' places. Add more context lines.');
-    err4.ambiguous = true;
-    throw err4;
-  }
+  var pick4 = pickHit(hits4, hint, blockNum);
+  if (pick4) return pick4;
 
   var notFound = new Error('Block #' + blockNum + ' anchor not found in file');
   notFound.failedSearch = search;
@@ -1670,7 +1715,7 @@ function dryRunFileHunks(originalText, hunks) {
     }
     var search = normNL(hunk.search);
     var payload = normNL(hunk.payload);
-    var loc = locateUniqueBlockInContent(content, search, h + 1);
+    var loc = locateUniqueBlockInContent(content, search, h + 1, hunk.lineHint || null);
 
     var anchorFirst = loc.matchedText.split('\n')[0] || '';
     var searchFirst = search.split('\n')[0] || '';
@@ -1699,7 +1744,14 @@ function dryRunFileHunks(originalText, hunks) {
     var item = desc[d];
     if (item.loc.tier > maxTier) maxTier = item.loc.tier;
 
-    if (item.mode === 'insert_after') {
+    if (item.mode === 'delete') {
+      // Remove whole lines including one line break, so no blank gap is left behind
+      var delStart = item.loc.start;
+      var delEnd = item.loc.end;
+      if (delEnd < content.length && content.charAt(delEnd) === '\n') delEnd += 1;
+      else if (delStart > 0 && content.charAt(delStart - 1) === '\n') delStart -= 1;
+      content = content.substring(0, delStart) + content.substring(delEnd);
+    } else if (item.mode === 'insert_after') {
       var sepAfter = (item.loc.matchedText.endsWith('\n') || item.payload.startsWith('\n')) ? '' : '\n';
       content = content.substring(0, item.loc.end) + sepAfter + item.payload + content.substring(item.loc.end);
     } else if (item.mode === 'insert_before') {
@@ -1715,6 +1767,7 @@ function dryRunFileHunks(originalText, hunks) {
       blockNum: p.blockNum,
       mode: p.mode,
       startLine: p.loc.startLine,
+      endLine: p.loc.endLine,
       tier: p.loc.tier,
       oldText: p.loc.matchedText,
       newText: p.payload
@@ -1755,7 +1808,7 @@ function buildAutoFixPromptForFile(filePath, errorMessage, failedSearch, remoteC
   return [
     'Patch failed on `' + filePath + '` with error: ' + errorMessage,
     'Here is the current live section of `' + filePath + '` (with line numbers for reference—do NOT include line numbers in your patch).',
-    'Output ONLY the corrected patch block using FILE:, <<<<<<< SEARCH, =======, and >>>>>>> REPLACE on separate lines:',
+    'Output ONLY the corrected patch block (SEARCH/REPLACE, or <<<<<<< DELETE ... >>>>>>> DELETE with an "@ lines START-END" hint when removing code) on separate lines:',
     '',
     '```',
     snippet,
@@ -1917,16 +1970,27 @@ function renderCardResult(card, badge, res) {
     res.edits.forEach(function(ed) {
       var hdr = document.createElement('div');
       hdr.className = 'diff-hunk-hdr';
-      hdr.textContent = 'Block #' + ed.blockNum + ' · ' + ed.mode.toUpperCase() + ' @ Line ' + ed.startLine + (ed.tier >= 3 ? ' (Fuzzy T' + ed.tier + ')' : '');
+      var lineLabel = (ed.mode === 'delete' && ed.endLine && ed.endLine !== ed.startLine)
+        ? ('Lines ' + ed.startLine + '-' + ed.endLine + ' (' + (ed.endLine - ed.startLine + 1) + ' removed)')
+        : ('Line ' + ed.startLine);
+      hdr.textContent = 'Block #' + ed.blockNum + ' · ' + ed.mode.toUpperCase() + ' @ ' + lineLabel + (ed.tier >= 3 ? ' (Fuzzy T' + ed.tier + ')' : '');
       diffBox.appendChild(hdr);
 
-      if (ed.mode === 'replace' && ed.oldText) {
-        ed.oldText.split('\n').slice(0, 6).forEach(function(l) {
+      if ((ed.mode === 'replace' || ed.mode === 'delete') && ed.oldText) {
+        var oldLines = ed.oldText.split('\n');
+        var oldCap = ed.mode === 'delete' ? 14 : 6;
+        oldLines.slice(0, oldCap).forEach(function(l) {
           var s = document.createElement('span');
           s.className = 'diff-del';
           s.textContent = '- ' + l;
           diffBox.appendChild(s);
         });
+        if (oldLines.length > oldCap) {
+          var more = document.createElement('span');
+          more.className = 'diff-ctx';
+          more.textContent = '  ... +' + (oldLines.length - oldCap) + ' more line' + (oldLines.length - oldCap > 1 ? 's' : '');
+          diffBox.appendChild(more);
+        }
       } else if (ed.oldText) {
         var anchorFirst = ed.oldText.split('\n')[0];
         var ctx = document.createElement('span');
