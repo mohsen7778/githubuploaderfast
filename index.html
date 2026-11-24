@@ -713,7 +713,7 @@ var UNIVERSAL_PATCH_PROMPT = [
   'exact lines to remove',
   '>>>>>>> DELETE',
   '',
-  'DELETE rules: (1) NEVER use line numbers - locate code only by its exact text; (2) copy anchor lines EXACTLY, character for character; (3) the start anchor must be unique in the file, so include 2-3 lines and a distinctive one (function name, unique string); (4) the end anchor is matched at its FIRST occurrence after the start anchor, so make it distinctive too and never use a bare "}" or "end" alone; (5) include the whole region you want gone, including its closing brace/end line; (6) to delete AND replace, use SEARCH/REPLACE instead; (7) several blocks per file are allowed; (8) never delete code that other code still references.',
+  'DELETE rules: (1) NEVER use line numbers - locate code only by its exact text; (2) copy anchor lines EXACTLY, character for character; (3) the start anchor must be unique in the file, so include 2-3 lines and a distinctive one (function name, unique string); (4) the end anchor must also be unique AFTER the start anchor, otherwise the patch is rejected - use 2-3 distinctive lines, never a bare "}" or "end" alone; (5) include the whole region you want gone, including its closing brace/end line; (6) to delete AND replace, use SEARCH/REPLACE instead; (7) several blocks per file are allowed; (8) never delete code that other code still references.',
   '',
   'To create a new file:',
   'FILE: path/to/newfile (NEW)',
@@ -1609,6 +1609,26 @@ function adaptIndent(payload, anchorFirstLine, searchFirstLine) {
 }
 
 // Line-boundary & uniqueness-enforced 4-tier locator
+// Safety limits for delete operations (raise only if you really delete huge blocks)
+var MAX_DELETE_LINES = 800;
+var MAX_DELETE_FRACTION = 0.5;
+
+// Net bracket count of a removed region, so a delete that cuts through a { } ( ) [ ] pair gets flagged
+function bracketWarning(text) {
+  var net = { '{': 0, '(': 0, '[': 0 };
+  for (var i = 0; i < text.length; i++) {
+    var ch = text.charAt(i);
+    if (ch === '{') net['{']++; else if (ch === '}') net['{']--;
+    else if (ch === '(') net['(']++; else if (ch === ')') net['(']--;
+    else if (ch === '[') net['[']++; else if (ch === ']') net['[']--;
+  }
+  var parts = [];
+  if (net['{']) parts.push('{} ' + (net['{'] > 0 ? '+' : '') + net['{']);
+  if (net['(']) parts.push('() ' + (net['('] > 0 ? '+' : '') + net['(']);
+  if (net['[']) parts.push('[] ' + (net['['] > 0 ? '+' : '') + net['[']);
+  return parts.length ? ('unbalanced ' + parts.join(', ')) : '';
+}
+
 function pickHit(hits, hint, blockNum) {
   if (hits.length === 0) return null;
   if (hits.length === 1) return hits[0];
@@ -1634,8 +1654,9 @@ function pickHit(hits, hint, blockNum) {
   throw e2;
 }
 
-// Finds the FIRST match of `search` that begins after line index `afterLine` (0-based, exclusive)
-function locateFirstAfter(content, search, afterLine, blockNum) {
+// Finds the end anchor AFTER the start anchor. It must match exactly ONE place after the start,
+// otherwise the delete is rejected (a weak/repeating end anchor could silently stop too early).
+function locateEndAfter(content, search, afterLine, blockNum) {
   var contentLines = content.split('\n');
   var searchLines = search.split('\n');
   var cmps = [
@@ -1644,12 +1665,22 @@ function locateFirstAfter(content, search, afterLine, blockNum) {
     function(a, b) { return a.trim() === b.trim(); }
   ];
   for (var t = 0; t < cmps.length; t++) {
+    var hits = [];
     for (var i = afterLine + 1; i <= contentLines.length - searchLines.length; i++) {
       var ok = true;
       for (var j = 0; j < searchLines.length; j++) {
         if (!cmps[t](contentLines[i + j], searchLines[j])) { ok = false; break; }
       }
-      if (ok) return { startIdx: i, endIdx: i + searchLines.length - 1, tier: t + 1 };
+      if (ok) hits.push({ startIdx: i, endIdx: i + searchLines.length - 1, tier: t + 1 });
+    }
+    if (hits.length === 1) return hits[0];
+    if (hits.length > 1) {
+      var e2 = new Error('Block #' + blockNum + ' end anchor matches ' + hits.length + ' places after the start (lines ' +
+        hits.slice(0, 6).map(function(h) { return h.startIdx + 1; }).join(', ') + (hits.length > 6 ? ', ...' : '') +
+        '). Use a more distinctive end anchor (2-3 lines, include a unique line).');
+      e2.ambiguous = true;
+      e2.failedSearch = search;
+      throw e2;
     }
   }
   var e = new Error('Block #' + blockNum + ' end anchor not found after the start anchor');
@@ -1659,7 +1690,7 @@ function locateFirstAfter(content, search, afterLine, blockNum) {
 
 function locateRangeInContent(content, startSearch, endSearch, blockNum, hint) {
   var startLoc = locateUniqueBlockInContent(content, startSearch, blockNum, hint);
-  var endHit = locateFirstAfter(content, endSearch, startLoc.endLine - 1, blockNum);
+  var endHit = locateEndAfter(content, endSearch, startLoc.endLine - 1, blockNum);
   var contentLines = content.split('\n');
   var firstIdx = startLoc.startLine - 1;
   var count = endHit.endIdx - firstIdx + 1;
@@ -1787,6 +1818,17 @@ function dryRunFileHunks(originalText, hunks) {
       ? locateRangeInContent(content, search, normNL(hunk.endSearch), h + 1, hunk.lineHint || null)
       : locateUniqueBlockInContent(content, search, h + 1, hunk.lineHint || null);
 
+    if (hunk.mode === 'delete' || hunk.mode === 'delete_range') {
+      if (loc.tier >= 4) {
+        throw new Error('Block #' + (h + 1) + ' only matched with loose whitespace-collapsed matching, which is too risky for a delete. Copy the lines exactly.');
+      }
+      var spanLines = loc.endLine - loc.startLine + 1;
+      var totalLinesNow = content.split('\n').length;
+      if (spanLines > MAX_DELETE_LINES || (totalLinesNow > 50 && spanLines > totalLinesNow * MAX_DELETE_FRACTION)) {
+        throw new Error('Block #' + (h + 1) + ' would delete ' + spanLines + ' of ' + totalLinesNow + ' lines (lines ' + loc.startLine + '-' + loc.endLine + '). Too large for one delete - split it into smaller blocks or check your anchors.');
+      }
+    }
+
     var anchorFirst = loc.matchedText.split('\n')[0] || '';
     var searchFirst = search.split('\n')[0] || '';
     var finalPayload = (loc.tier >= 3) ? adaptIndent(payload, anchorFirst, searchFirst) : payload;
@@ -1806,6 +1848,9 @@ function dryRunFileHunks(originalText, hunks) {
       throw new Error('Block #' + asc[k].blockNum + ' overlaps with Block #' + asc[k - 1].blockNum);
     }
   }
+
+  var origContentForCheck = content;
+  var deleteOnly = planned.every(function(pl) { return pl.mode === 'delete'; });
 
   // Apply from bottom of file upward so earlier offsets never shift
   var desc = planned.slice().sort(function(a, b) { return b.loc.start - a.loc.start; });
@@ -1832,12 +1877,26 @@ function dryRunFileHunks(originalText, hunks) {
     }
   }
 
+  // Independent re-check for delete-only patches: rebuild the expected file line-by-line and compare
+  if (deleteOnly) {
+    var origLinesArr = origContentForCheck.split('\n');
+    var drop = {};
+    asc.forEach(function(pl) {
+      for (var ln = pl.loc.startLine; ln <= pl.loc.endLine; ln++) drop[ln] = true;
+    });
+    var expectedLines = origLinesArr.filter(function(_, idx) { return !drop[idx + 1]; });
+    if (expectedLines.join('\n') !== content) {
+      throw new Error('Internal safety check failed: result does not match the expected delete. Nothing was changed.');
+    }
+  }
+
   var diffSummaries = asc.map(function(p) {
     return {
       blockNum: p.blockNum,
       mode: p.mode,
       startLine: p.loc.startLine,
       endLine: p.loc.endLine,
+      warn: p.mode === 'delete' ? bracketWarning(p.loc.matchedText) : '',
       tier: p.loc.tier,
       oldText: p.loc.matchedText,
       newText: p.payload
@@ -2043,7 +2102,7 @@ function renderCardResult(card, badge, res) {
       var lineLabel = (ed.mode === 'delete' && ed.endLine && ed.endLine !== ed.startLine)
         ? ('Lines ' + ed.startLine + '-' + ed.endLine + ' (' + (ed.endLine - ed.startLine + 1) + ' removed)')
         : ('Line ' + ed.startLine);
-      hdr.textContent = 'Block #' + ed.blockNum + ' · ' + ed.mode.toUpperCase() + ' @ ' + lineLabel + (ed.tier >= 3 ? ' (Fuzzy T' + ed.tier + ')' : '');
+      hdr.textContent = 'Block #' + ed.blockNum + ' · ' + ed.mode.toUpperCase() + ' @ ' + lineLabel + (ed.tier >= 3 ? ' (Fuzzy T' + ed.tier + ')' : '') + (ed.warn ? '  [CHECK: ' + ed.warn + ']' : '');
       diffBox.appendChild(hdr);
 
       if ((ed.mode === 'replace' || ed.mode === 'delete') && ed.oldText) {
